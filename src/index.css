@@ -1,0 +1,52 @@
+:root {
+  font-family: 'Instrument Sans', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #1f2730;
+  background: #f5f1e8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --xy-background-color-default: transparent;
+  --xy-node-background-color-default: transparent;
+  --xy-node-border-default: none;
+  --xy-edge-stroke-default: #6b6873;
+  --xy-handle-background-color-default: #214f82;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: 'Instrument Sans', sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  border-radius: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

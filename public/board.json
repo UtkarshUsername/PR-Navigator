@@ -2,8 +2,42 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-08T00:00:00.000Z"
+    "updatedAt": "2026-03-09T10:40:33.462Z"
   },
-  "nodes": [],
-  "edges": []
+  "nodes": [
+    {
+      "id": "node-e43b0e30-649f-4afd-ad9b-6626c07e6306",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/511",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 511,
+      "title": "title",
+      "state": "open",
+      "position": {
+        "x": 314.78,
+        "y": 125.33
+      }
+    },
+    {
+      "id": "node-9ff514d1-573b-45de-bc16-287cfc217467",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/11",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 11,
+      "title": "dd",
+      "state": "open",
+      "position": {
+        "x": 354.62,
+        "y": 155.18
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-20de9a62-0f37-4f50-9b8b-f3fbdd0c19a7",
+      "source": "node-e43b0e30-649f-4afd-ad9b-6626c07e6306",
+      "target": "node-e43b0e30-649f-4afd-ad9b-6626c07e6306",
+      "kind": "relates"
+    }
+  ]
 }

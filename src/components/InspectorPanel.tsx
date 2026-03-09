@@ -27,15 +27,7 @@ export function InspectorPanel({
   onEdgeDelete,
 }: InspectorPanelProps) {
   if (!selectedNode && !selectedEdge) {
-    return (
-      <aside className="selection-panel selection-panel--empty">
-        <p className="selection-panel__eyebrow">Inspector</p>
-        <h2 className="selection-panel__heading">Select a card or connector</h2>
-        <p className="selection-panel__copy">
-          Drag cards, draw links, then use this panel to edit the selected element.
-        </p>
-      </aside>
-    )
+    return null
   }
 
   if (selectedNode) {

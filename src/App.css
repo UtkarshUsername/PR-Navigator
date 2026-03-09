@@ -14,7 +14,6 @@
 
 .app-shell {
   min-height: 100vh;
-  padding: clamp(0.75rem, 1.8vw, 1.5rem);
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 30rem),
     radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.05), transparent 26rem),
@@ -24,6 +23,7 @@
 .app-shell--error {
   display: grid;
   place-items: center;
+  padding: clamp(0.75rem, 1.8vw, 1.5rem);
 }
 
 .app-error {
@@ -73,15 +73,11 @@
 
 .board-stage {
   position: relative;
-  min-height: calc(100vh - clamp(1.5rem, 3.6vw, 3rem));
-  border: 2px solid rgba(244, 247, 251, 0.74);
+  min-height: 100vh;
   background:
     radial-gradient(circle at 18% 16%, rgba(255, 255, 255, 0.04), transparent 20rem),
     radial-gradient(circle at 78% 62%, rgba(255, 255, 255, 0.03), transparent 24rem),
     linear-gradient(180deg, rgba(8, 9, 12, 0.96), rgba(3, 4, 5, 1));
-  box-shadow:
-    inset 0 0 0 1px rgba(244, 247, 251, 0.08),
-    0 34px 80px rgba(0, 0, 0, 0.45);
   overflow: hidden;
 }
 
@@ -470,24 +466,9 @@
   color: rgba(244, 247, 251, 0.82);
 }
 
-.nav-node__marker {
-  position: relative;
-  width: 0.78rem;
-  height: 0.78rem;
-  border: 1px solid rgba(244, 247, 251, 0.82);
-  border-radius: 999px;
-}
-
-.nav-node__marker::after {
-  content: '';
-  position: absolute;
-  inset: 0.17rem;
-  border-radius: inherit;
-  background: rgba(244, 247, 251, 0.82);
-}
-
-.nav-node--pr .nav-node__marker {
-  border-radius: 0.22rem;
+.nav-node__gh-icon {
+  flex-shrink: 0;
+  color: rgba(244, 247, 251, 0.82);
 }
 
 .nav-node__title {
@@ -556,9 +537,239 @@
   display: none;
 }
 
+.fab-add {
+  position: absolute;
+  z-index: 20;
+  top: 1.5rem;
+  left: 1.5rem;
+  width: 3.2rem;
+  height: 3.2rem;
+  border: 1px solid rgba(244, 247, 251, 0.18);
+  border-radius: 50%;
+  background: rgba(9, 11, 14, 0.92);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  font-family: 'Sora', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  line-height: 1;
+  color: #f4f7fb;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.fab-add:hover {
+  border-color: rgba(244, 247, 251, 0.48);
+  background: rgba(244, 247, 251, 0.1);
+  transform: scale(1.08);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+}
+
+.modal-dialog {
+  width: min(26rem, calc(100% - 2rem));
+  border: 1px solid rgba(244, 247, 251, 0.14);
+  border-radius: 1.5rem;
+  background: rgba(9, 11, 14, 0.96);
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 1.2rem 0.8rem;
+  border-bottom: 1px solid rgba(244, 247, 251, 0.08);
+}
+
+.modal-title {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #f4f7fb;
+}
+
+.modal-close {
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 1.3rem;
+  color: rgba(244, 247, 251, 0.6);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 140ms ease;
+}
+
+.modal-close:hover {
+  background: rgba(244, 247, 251, 0.1);
+}
+
+.modal-body {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem 1.2rem;
+}
+
+.modal-kind-toggle {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.kind-btn {
+  flex: 1;
+  min-height: 2.2rem;
+  border: 1px solid rgba(244, 247, 251, 0.12);
+  border-radius: 0.6rem;
+  background: rgba(244, 247, 251, 0.02);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(244, 247, 251, 0.7);
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.kind-btn:hover {
+  border-color: rgba(244, 247, 251, 0.3);
+}
+
+.kind-btn--active {
+  border-color: rgba(244, 247, 251, 0.72);
+  background: rgba(244, 247, 251, 0.12);
+  color: #f4f7fb;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.55rem;
+  padding: 0.8rem 1.2rem 1.1rem;
+  border-top: 1px solid rgba(244, 247, 251, 0.08);
+}
+
+.repo-selector {
+  position: absolute;
+  z-index: 20;
+  bottom: 1.5rem;
+  right: 1.5rem;
+}
+
+.repo-selector__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(244, 247, 251, 0.18);
+  border-radius: 0.75rem;
+  background: rgba(9, 11, 14, 0.92);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #f4f7fb;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.repo-selector__trigger:hover {
+  border-color: rgba(244, 247, 251, 0.42);
+  background: rgba(244, 247, 251, 0.06);
+}
+
+.repo-selector__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 18rem;
+}
+
+.repo-selector__chevron {
+  flex-shrink: 0;
+  transition: transform 180ms ease;
+}
+
+.repo-selector__chevron--open {
+  transform: rotate(180deg);
+}
+
+.repo-selector__menu {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  right: 0;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  border: 1px solid rgba(244, 247, 251, 0.14);
+  border-radius: 0.75rem;
+  background: rgba(9, 11, 14, 0.96);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.repo-selector__option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: rgba(244, 247, 251, 0.7);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease;
+}
+
+button.repo-selector__option:hover {
+  background: rgba(244, 247, 251, 0.08);
+}
+
+.repo-selector__option--active {
+  color: #f4f7fb;
+  background: rgba(244, 247, 251, 0.06);
+}
+
+.repo-selector__option--locked {
+  cursor: default;
+  color: rgba(244, 247, 251, 0.32);
+}
+
+.repo-selector__icon {
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
 @media (max-width: 980px) {
   .board-stage {
-    min-height: calc(100vh - 1.5rem);
+    min-height: 100vh;
   }
 
   .command-panel,

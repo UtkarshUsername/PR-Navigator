@@ -28,12 +28,12 @@ export function InspectorPanel({
 }: InspectorPanelProps) {
   if (!selectedNode && !selectedEdge) {
     return (
-      <aside className="inspector-panel">
-        <div className="inspector-panel__empty">
-          <p className="inspector-panel__eyebrow">Inspector</p>
-          <h2 className="inspector-panel__heading">Select a card or connection</h2>
-          <p>Drag blocks, draw edges, then refine titles and relationship labels here.</p>
-        </div>
+      <aside className="selection-panel selection-panel--empty">
+        <p className="selection-panel__eyebrow">Inspector</p>
+        <h2 className="selection-panel__heading">Select a card or connector</h2>
+        <p className="selection-panel__copy">
+          Drag cards, draw links, then use this panel to edit the selected element.
+        </p>
       </aside>
     )
   }
@@ -43,13 +43,13 @@ export function InspectorPanel({
       selectedNode.data.kind === 'issue' ? ['open', 'closed'] : ['draft', 'open', 'closed', 'merged']
 
     return (
-      <aside className="inspector-panel">
-        <p className="inspector-panel__eyebrow">Node</p>
-        <h2 className="inspector-panel__heading">
-          {selectedNode.data.kind === 'issue' ? 'Issue card' : 'PR card'}
+      <aside className="selection-panel">
+        <p className="selection-panel__eyebrow">Card</p>
+        <h2 className="selection-panel__heading">
+          {selectedNode.data.kind === 'issue' ? 'Issue' : 'Pull request'} #{selectedNode.data.number}
         </h2>
 
-        <label className="inspector-panel__field">
+        <label className="field-group">
           <span>Title</span>
           <textarea
             rows={4}
@@ -58,7 +58,7 @@ export function InspectorPanel({
           />
         </label>
 
-        <label className="inspector-panel__field">
+        <label className="field-group">
           <span>Status</span>
           <select
             value={selectedNode.data.state ?? ''}
@@ -73,29 +73,30 @@ export function InspectorPanel({
           </select>
         </label>
 
-        <dl className="inspector-panel__metadata">
-          <div>
+        <dl className="selection-panel__meta">
+          <div className="selection-panel__meta-row">
             <dt>Repository</dt>
             <dd>{selectedNode.data.repoSlug}</dd>
           </div>
-          <div>
-            <dt>Number</dt>
-            <dd>#{selectedNode.data.number}</dd>
+          <div className="selection-panel__meta-row">
+            <dt>State</dt>
+            <dd>{formatNodeState(selectedNode.data.state)}</dd>
           </div>
         </dl>
 
-        <a
-          className="inspector-panel__link"
-          href={selectedNode.data.githubUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Open on GitHub
-        </a>
-
-        <button className="toolbar-button toolbar-button--danger" type="button" onClick={onNodeDelete}>
-          Delete node
-        </button>
+        <div className="selection-panel__actions">
+          <a
+            className="hud-button"
+            href={selectedNode.data.githubUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open on GitHub
+          </a>
+          <button className="hud-button hud-button--danger" type="button" onClick={onNodeDelete}>
+            Delete card
+          </button>
+        </div>
       </aside>
     )
   }
@@ -105,11 +106,11 @@ export function InspectorPanel({
   }
 
   return (
-    <aside className="inspector-panel">
-      <p className="inspector-panel__eyebrow">Connection</p>
-      <h2 className="inspector-panel__heading">Relationship edge</h2>
+    <aside className="selection-panel">
+      <p className="selection-panel__eyebrow">Connector</p>
+      <h2 className="selection-panel__heading">Relationship</h2>
 
-      <label className="inspector-panel__field">
+      <label className="field-group">
         <span>Kind</span>
         <select
           value={selectedEdge.data?.kind ?? 'relates'}
@@ -123,30 +124,32 @@ export function InspectorPanel({
         </select>
       </label>
 
-      <label className="inspector-panel__field">
-        <span>Custom label</span>
+      <label className="field-group">
+        <span>Label</span>
         <input
           type="text"
           value={selectedEdge.data?.label ?? ''}
           onChange={(event) => onEdgeLabelChange(event.target.value)}
-          placeholder="Optional edge label override"
+          placeholder="Optional label shown on the link"
         />
       </label>
 
-      <dl className="inspector-panel__metadata">
-        <div>
+      <dl className="selection-panel__meta">
+        <div className="selection-panel__meta-row">
           <dt>Source</dt>
           <dd>{sourceLabel ?? selectedEdge.source}</dd>
         </div>
-        <div>
+        <div className="selection-panel__meta-row">
           <dt>Target</dt>
           <dd>{targetLabel ?? selectedEdge.target}</dd>
         </div>
       </dl>
 
-      <button className="toolbar-button toolbar-button--danger" type="button" onClick={onEdgeDelete}>
-        Delete edge
-      </button>
+      <div className="selection-panel__actions">
+        <button className="hud-button hud-button--danger" type="button" onClick={onEdgeDelete}>
+          Delete connector
+        </button>
+      </div>
     </aside>
   )
 }

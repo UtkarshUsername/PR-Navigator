@@ -1,8 +1,6 @@
 import {
   applyEdgeChanges,
   applyNodeChanges,
-  Background,
-  Controls,
   type Connection,
   type EdgeChange,
   type NodeChange,
@@ -13,6 +11,7 @@ import {
   startTransition,
   useDeferredValue,
   useEffect,
+  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -106,6 +105,11 @@ function App() {
     }
   }, [nodes, selectedEdge])
 
+  const boardTagLabel = useMemo(() => getBoardTagLabel(meta.title, nodes), [meta.title, nodes])
+  const applyLoadedBoardEvent = useEffectEvent((board: BoardData, markDirty: boolean) => {
+    applyLoadedBoard(board, markDirty)
+  })
+
   useEffect(() => {
     let cancelled = false
 
@@ -117,7 +121,7 @@ function App() {
           return
         }
 
-        applyLoadedBoard(canonicalBoard, false)
+        applyLoadedBoardEvent(canonicalBoard, false)
 
         if (isEditor) {
           const draftBoard = loadDraftFromStorage(LOCAL_DRAFT_STORAGE_KEY)
@@ -141,7 +145,7 @@ function App() {
         }
 
         if (isEditor) {
-          applyLoadedBoard(createEmptyBoard(DEFAULT_BOARD_TITLE), false)
+          applyLoadedBoardEvent(createEmptyBoard(DEFAULT_BOARD_TITLE), false)
           setStatusMessage(`${message} Starting with a blank local board.`)
         } else {
           setLoadError(message)
@@ -191,6 +195,13 @@ function App() {
     }
   }, [edges, nodes, selection])
 
+  function focusBoard(duration = 320) {
+    reactFlowRef.current?.fitView({
+      padding: isEditor ? 0.18 : 0.14,
+      duration,
+    })
+  }
+
   function applyLoadedBoard(board: BoardData, markDirty: boolean) {
     startTransition(() => {
       setMeta(board.meta)
@@ -207,10 +218,7 @@ function App() {
     })
 
     requestAnimationFrame(() => {
-      reactFlowRef.current?.fitView({
-        padding: 0.16,
-        duration: 350,
-      })
+      focusBoard(360)
     })
   }
 
@@ -246,7 +254,7 @@ function App() {
 
     setEdges((currentEdges) => [...currentEdges, baseEdge])
     setIsDirty(true)
-    setStatusMessage('Connection added. Fine-tune it in the inspector.')
+    setStatusMessage('Connection added. Tune the relationship in the inspector.')
   }
 
   function handleCreateNode() {
@@ -386,7 +394,7 @@ function App() {
     return (
       <main className="app-shell app-shell--error">
         <div className="app-error">
-          <p className="app-error__kicker">Unable to load board</p>
+          <p className="app-error__kicker">Viewer unavailable</p>
           <h1 className="app-error__title">{loadError}</h1>
           <p className="app-error__body">
             Confirm that <code>{BOARD_DATA_PATH}</code> exists in the deployed site and matches the
@@ -399,93 +407,110 @@ function App() {
 
   return (
     <main className="app-shell">
-      <Toolbar
-        mode={APP_MODE}
-        title={meta.title}
-        updatedAt={formatTimestamp(meta.updatedAt)}
-        composerKind={composerKind}
-        composerUrl={composerUrl}
-        composerTitle={composerTitle}
-        composerState={composerState}
-        composerError={composerError}
-        draftAvailable={draftAvailable}
-        statusMessage={statusMessage}
-        onTitleChange={(value) => {
-          setMeta((currentMeta) => ({ ...currentMeta, title: value || DEFAULT_BOARD_TITLE }))
-          setIsDirty(true)
-        }}
-        onOpenComposer={(kind) => {
-          setComposerKind(kind)
-          setComposerState(kind === 'issue' ? 'open' : 'draft')
-          setComposerUrl('')
-          setComposerTitle('')
-          setComposerError(null)
-        }}
-        onCloseComposer={() => {
-          setComposerKind(null)
-          setComposerUrl('')
-          setComposerTitle('')
-          setComposerState('')
-          setComposerError(null)
-        }}
-        onComposerUrlChange={(value) => {
-          setComposerUrl(value)
-          if (composerError) {
-            setComposerError(null)
-          }
-        }}
-        onComposerTitleChange={setComposerTitle}
-        onComposerStateChange={setComposerState}
-        onComposerSubmit={handleCreateNode}
-        onImportClick={() => fileInputRef.current?.click()}
-        onExportClick={handleExportBoard}
-        onClearDraftClick={handleClearDraft}
-      />
+      <section className={`board-stage board-stage--${APP_MODE}`}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json"
+          hidden
+          onChange={handleImportFile}
+        />
 
-      {isEditor && draftReadyToLoad ? (
-        <section className="draft-banner">
-          <div>
-            <p className="draft-banner__eyebrow">Local draft detected</p>
-            <p className="draft-banner__body">
-              A saved local draft exists and does not match the published board.
-            </p>
-          </div>
-          <div className="draft-banner__actions">
-            <button className="toolbar-button" type="button" onClick={handleLoadDraft}>
-              Load draft
-            </button>
-            <button className="toolbar-button toolbar-button--ghost" type="button" onClick={handleDismissDraft}>
-              Ignore
-            </button>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="board-shell">
-        <div className="board-canvas" ref={canvasRef}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json"
-            hidden
-            onChange={handleImportFile}
+        {isEditor ? (
+          <Toolbar
+            mode={APP_MODE}
+            title={meta.title}
+            updatedAt={formatTimestamp(meta.updatedAt)}
+            composerKind={composerKind}
+            composerUrl={composerUrl}
+            composerTitle={composerTitle}
+            composerState={composerState}
+            composerError={composerError}
+            draftAvailable={draftAvailable}
+            statusMessage={statusMessage}
+            nodeCount={nodes.length}
+            edgeCount={edges.length}
+            isDirty={isDirty}
+            onTitleChange={(value) => {
+              setMeta((currentMeta) => ({ ...currentMeta, title: value || DEFAULT_BOARD_TITLE }))
+              setIsDirty(true)
+            }}
+            onOpenComposer={(kind) => {
+              setComposerKind(kind)
+              setComposerState(kind === 'issue' ? 'open' : 'draft')
+              setComposerUrl('')
+              setComposerTitle('')
+              setComposerError(null)
+            }}
+            onCloseComposer={() => {
+              setComposerKind(null)
+              setComposerUrl('')
+              setComposerTitle('')
+              setComposerState('')
+              setComposerError(null)
+            }}
+            onComposerUrlChange={(value) => {
+              setComposerUrl(value)
+              if (composerError) {
+                setComposerError(null)
+              }
+            }}
+            onComposerTitleChange={setComposerTitle}
+            onComposerStateChange={setComposerState}
+            onComposerSubmit={handleCreateNode}
+            onImportClick={() => fileInputRef.current?.click()}
+            onExportClick={handleExportBoard}
+            onClearDraftClick={handleClearDraft}
+            onFocusBoard={() => focusBoard(300)}
           />
+        ) : null}
 
+        {isEditor && draftReadyToLoad ? (
+          <section className="draft-banner">
+            <div>
+              <p className="draft-banner__eyebrow">Local draft available</p>
+              <p className="draft-banner__body">
+                A newer local version exists than the published board.
+              </p>
+            </div>
+            <div className="draft-banner__actions">
+              <button className="hud-button hud-button--primary" type="button" onClick={handleLoadDraft}>
+                Load draft
+              </button>
+              <button className="hud-button" type="button" onClick={handleDismissDraft}>
+                Ignore
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        <div className="board-canvas" ref={canvasRef}>
           {!hasHydrated ? (
             <div className="canvas-empty-state">
-              <p className="canvas-empty-state__eyebrow">Loading board</p>
-              <h2>Preparing the canvas</h2>
+              <div className="canvas-empty-state__card">
+                <p className="canvas-empty-state__eyebrow">Loading board</p>
+                <h2>Rendering the graph surface</h2>
+              </div>
             </div>
           ) : null}
 
           {hasHydrated && nodes.length === 0 ? (
             <div className="canvas-empty-state">
-              <p className="canvas-empty-state__eyebrow">Start the map</p>
-              <h2>Paste a GitHub issue or PR, then place it on the board.</h2>
-              <p>
-                Keep the published site read-only. Edit locally, export <code>board.json</code>,
-                and redeploy when you want to publish changes.
-              </p>
+              <div className="canvas-empty-state__card">
+                <p className="canvas-empty-state__eyebrow">
+                  {isEditor ? 'Start mapping' : 'Nothing published yet'}
+                </p>
+                <h2>
+                  {isEditor
+                    ? 'Paste a GitHub issue or PR URL to place the first card.'
+                    : 'This board does not have any visible cards yet.'}
+                </h2>
+                <p>
+                  {isEditor
+                    ? 'Drag cards into position, connect them, then export board.json when the layout is ready.'
+                    : 'Publish a board.json with nodes to populate this viewer.'}
+                </p>
+              </div>
             </div>
           ) : null}
 
@@ -517,22 +542,19 @@ function App() {
             edgesReconnectable={isEditor}
             nodesDraggable={isEditor}
             nodesConnectable={isEditor}
+            elementsSelectable={isEditor}
             deleteKeyCode={isEditor ? ['Delete', 'Backspace'] : null}
-            selectionOnDrag={false}
-            panOnScroll
-            panOnDrag={[1, 2]}
+            proOptions={{ hideAttribution: true }}
+            panOnDrag
             minZoom={0.35}
-            maxZoom={1.8}
+            maxZoom={1.6}
+            fitViewOptions={{
+              padding: isEditor ? 0.18 : 0.14,
+            }}
             defaultEdgeOptions={{
               reconnectable: isEditor,
             }}
-            proOptions={{
-              hideAttribution: true,
-            }}
-          >
-            <Background color="#d9d3c5" gap={32} size={1} />
-            <Controls showInteractive={false} position="bottom-left" />
-          </ReactFlow>
+          />
         </div>
 
         {isEditor ? (
@@ -567,8 +589,8 @@ function App() {
                   source: edge.source,
                   target: edge.target,
                   data: {
+                    ...edge.data,
                     kind: value,
-                    label: edge.data?.label,
                   },
                 }),
               )
@@ -589,60 +611,83 @@ function App() {
             onEdgeDelete={deleteSelectedEdge}
           />
         ) : null}
+
+        <div className="board-tag">
+          <span className="board-tag__label">{boardTagLabel}</span>
+          <span className="board-tag__arrow" aria-hidden="true">
+            ↑
+          </span>
+        </div>
       </section>
     </main>
   )
 }
 
 function isMutatingNodeChange(change: NodeChange<FlowBoardNode>): boolean {
-  return change.type !== 'select' && change.type !== 'dimensions'
+  return change.type !== 'select'
 }
 
 function isMutatingEdgeChange(change: EdgeChange<FlowBoardEdge>): boolean {
   return change.type !== 'select'
 }
 
-function formatTimestamp(timestamp: string): string {
-  const date = new Date(timestamp)
+function getSuggestedPosition(
+  index: number,
+  canvas: HTMLDivElement | null,
+  reactFlow: ReactFlowInstance<FlowBoardNode, FlowBoardEdge> | null,
+) {
+  const columns = 3
+  const horizontalGap = 260
+  const verticalGap = 182
+  const baseX = 120 + (index % columns) * horizontalGap
+  const baseY = 90 + Math.floor(index / columns) * verticalGap
+
+  if (!canvas || !reactFlow) {
+    return { x: baseX, y: baseY }
+  }
+
+  const bounds = canvas.getBoundingClientRect()
+  const offsetX = Math.max((bounds.width - columns * horizontalGap) / 2, 0)
+  const viewportPosition = {
+    x: baseX + offsetX,
+    y: baseY,
+  }
+
+  return reactFlow.screenToFlowPosition(viewportPosition)
+}
+
+function createId(prefix: 'node' | 'edge') {
+  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function formatTimestamp(value: string): string {
+  const date = new Date(value)
 
   if (Number.isNaN(date.getTime())) {
-    return 'Unknown'
+    return 'just now'
   }
 
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
   }).format(date)
 }
 
-function createId(prefix: string): string {
-  return `${prefix}-${crypto.randomUUID()}`
-}
+function getBoardTagLabel(title: string, nodes: FlowBoardNode[]): string {
+  const repoCounts = new Map<string, number>()
 
-function getSuggestedPosition(
-  index: number,
-  container: HTMLDivElement | null,
-  reactFlow: ReactFlowInstance<FlowBoardNode, FlowBoardEdge> | null,
-) {
-  const offset = (index % 5) * 24
-
-  if (!container || !reactFlow) {
-    return {
-      x: 140 + offset,
-      y: 140 + offset,
-    }
+  for (const node of nodes) {
+    repoCounts.set(node.data.repoSlug, (repoCounts.get(node.data.repoSlug) ?? 0) + 1)
   }
 
-  const bounds = container.getBoundingClientRect()
-  const centerPoint = reactFlow.screenToFlowPosition({
-    x: bounds.left + bounds.width / 2,
-    y: bounds.top + bounds.height / 2,
-  })
+  const [topRepo] = [...repoCounts.entries()].sort((left, right) => right[1] - left[1])
 
-  return {
-    x: centerPoint.x - 120 + offset,
-    y: centerPoint.y - 78 + offset,
+  if (topRepo && topRepo[1] >= Math.ceil(nodes.length / 2)) {
+    return topRepo[0]
   }
+
+  return title.trim() || DEFAULT_BOARD_TITLE
 }
 
 export default App

@@ -1,9 +1,9 @@
 :root {
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: 'Sora', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #1f2730;
-  background: #f5f1e8;
+  color: #f4f7fb;
+  background: #030405;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -11,8 +11,10 @@
   --xy-background-color-default: transparent;
   --xy-node-background-color-default: transparent;
   --xy-node-border-default: none;
-  --xy-edge-stroke-default: #6b6873;
-  --xy-handle-background-color-default: #214f82;
+  --xy-edge-stroke-default: rgba(244, 247, 251, 0.82);
+  --xy-handle-background-color-default: #f4f7fb;
+  --xy-selection-background-color-default: rgba(244, 247, 251, 0.08);
+  --xy-selection-border-default: 1px solid rgba(244, 247, 251, 0.24);
 }
 
 * {
@@ -27,16 +29,17 @@ body,
   margin: 0;
 }
 
-body {
-  min-height: 100vh;
-}
-
 body,
 button,
 input,
 select,
 textarea {
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: 'Sora', sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #030405;
 }
 
 button,
@@ -44,6 +47,10 @@ input,
 select,
 textarea {
   border-radius: 0;
+}
+
+button {
+  cursor: pointer;
 }
 
 a {

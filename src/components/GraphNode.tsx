@@ -1,13 +1,14 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import type { KeyboardEvent, MouseEvent } from 'react'
 
-import { formatNodeState, NODE_KIND_LABELS } from '../constants'
+import { formatNodeState } from '../constants'
 import type { FlowBoardNode } from '../types'
 
 export function GraphNode({ data, selected }: NodeProps<FlowBoardNode>) {
   const isViewer = data.mode === 'viewer'
+  const nodeLabel = data.kind === 'issue' ? 'Issue' : 'PR'
 
-  function openGitHubIssue(event?: MouseEvent | KeyboardEvent) {
+  function openGitHubResource(event?: MouseEvent | KeyboardEvent) {
     event?.stopPropagation()
     window.open(data.githubUrl, '_blank', 'noopener,noreferrer')
   }
@@ -19,7 +20,7 @@ export function GraphNode({ data, selected }: NodeProps<FlowBoardNode>) {
 
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      openGitHubIssue(event)
+      openGitHubResource(event)
     }
   }
 
@@ -34,24 +35,22 @@ export function GraphNode({ data, selected }: NodeProps<FlowBoardNode>) {
         className={`nav-node__surface ${isViewer ? 'nav-node__surface--viewer' : ''}`}
         role={isViewer ? 'link' : undefined}
         tabIndex={isViewer ? 0 : undefined}
-        onClick={isViewer ? openGitHubIssue : undefined}
+        onClick={isViewer ? openGitHubResource : undefined}
         onKeyDown={handleViewerKeyDown}
       >
-        <div className="nav-node__eyebrow">
-          <span className="nav-node__kind">{NODE_KIND_LABELS[data.kind]}</span>
+        <div className="nav-node__header">
+          <span className="nav-node__marker" aria-hidden="true" />
+          <span className="nav-node__label">
+            {nodeLabel} #{data.number}
+          </span>
+        </div>
+
+        <div className="nav-node__title">{data.title.trim() || `Untitled ${nodeLabel}`}</div>
+
+        <div className="nav-node__footer">
+          <span className="nav-node__repo">{data.repoSlug}</span>
           {data.state ? <span className="nav-node__state">{formatNodeState(data.state)}</span> : null}
         </div>
-
-        <div className="nav-node__title">{data.title.trim() || `Untitled ${NODE_KIND_LABELS[data.kind]}`}</div>
-
-        <div className="nav-node__meta">
-          <span className="nav-node__slug">{data.repoSlug}</span>
-          <span className="nav-node__number">#{data.number}</span>
-        </div>
-
-        <button className="nav-node__open nodrag nopan" type="button" onClick={openGitHubIssue}>
-          Open
-        </button>
       </div>
     </div>
   )

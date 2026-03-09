@@ -61,3 +61,15 @@ export function downloadBoardFile(board: BoardData): void {
 
   window.URL.revokeObjectURL(url)
 }
+
+export async function publishBoardData(board: BoardData): Promise<void> {
+  const response = await fetch('/api/publish', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: serializeBoardData(board),
+  })
+
+  if (!response.ok) {
+    throw new Error('Publish failed.')
+  }
+}

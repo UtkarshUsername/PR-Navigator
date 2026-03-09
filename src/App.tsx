@@ -9,6 +9,7 @@ import {
 } from '@xyflow/react'
 import {
   startTransition,
+  useCallback,
   useDeferredValue,
   useEffect,
   useEffectEvent,
@@ -27,8 +28,10 @@ import { DEFAULT_BOARD_TITLE, LOCAL_DRAFT_STORAGE_KEY } from './constants'
 import { createBoardSnapshot, createEmptyBoard, serializeBoardData } from './lib/board'
 import { boardToFlowEdges, boardToFlowNodes, createBoardFromFlow, createDecoratedEdge } from './lib/flow'
 import {
+  clearDraftFromStorage,
   fetchBoardData,
   loadDraftFromStorage,
+  publishBoardData,
   readBoardFile,
   saveDraftToStorage,
 } from './lib/storage'
@@ -67,8 +70,17 @@ function App() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedRepo, setSelectedRepo] = useState('pingdotgg/t3code')
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [draftAvailable, setDraftAvailable] = useState(false)
   const [hasHydrated, setHasHydrated] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function showToast(message: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast(message)
+    toastTimer.current = setTimeout(() => setToast(null), 2500)
+  }
 
   const deferredSelection = useDeferredValue(selection)
   const liveBoard = useMemo(() => createBoardFromFlow({ meta, nodes, edges }), [edges, meta, nodes])
@@ -106,6 +118,23 @@ function App() {
     applyLoadedBoard(board, markDirty)
   })
 
+  const handleSelectionChange = useCallback(
+    ({ nodes: selectedNodes, edges: selectedEdges }: { nodes: FlowBoardNode[]; edges: FlowBoardEdge[] }) => {
+      if (selectedNodes.length > 0) {
+        setSelection({ type: 'node', id: selectedNodes[0].id })
+        return
+      }
+
+      if (selectedEdges.length > 0) {
+        setSelection({ type: 'edge', id: selectedEdges[0].id })
+        return
+      }
+
+      setSelection(null)
+    },
+    [],
+  )
+
   useEffect(() => {
     let cancelled = false
 
@@ -117,6 +146,8 @@ function App() {
           return
         }
 
+        let hasLocalDraft = false
+
         applyLoadedBoardEvent(canonicalBoard, false)
 
         if (isEditor) {
@@ -125,9 +156,12 @@ function App() {
             draftBoard &&
             serializeBoardData(draftBoard) !== serializeBoardData(canonicalBoard)
           ) {
+            hasLocalDraft = true
             applyLoadedBoardEvent(draftBoard, true)
           }
         }
+
+        setDraftAvailable(hasLocalDraft)
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Unable to load the published board data.'
@@ -137,6 +171,7 @@ function App() {
         }
 
         if (isEditor) {
+          setDraftAvailable(false)
           applyLoadedBoardEvent(createEmptyBoard(DEFAULT_BOARD_TITLE), false)
         } else {
           setLoadError(message)
@@ -168,6 +203,7 @@ function App() {
         edges: liveBoard.edges,
       }),
     )
+    setDraftAvailable(true)
   }, [hasHydrated, isDirty, isEditor, liveBoard])
 
   useEffect(() => {
@@ -297,8 +333,34 @@ function App() {
     try {
       const importedBoard = await readBoardFile(file)
       applyLoadedBoard(importedBoard, true)
+      showToast('Imported')
     } catch {
+      showToast('Import failed')
     }
+  }
+
+  async function handlePublish() {
+    try {
+      const snapshot = createBoardSnapshot({
+        meta: liveBoard.meta,
+        nodes: liveBoard.nodes,
+        edges: liveBoard.edges,
+      })
+
+      await publishBoardData(snapshot)
+      clearDraftFromStorage(LOCAL_DRAFT_STORAGE_KEY)
+      setDraftAvailable(false)
+      setIsDirty(false)
+      showToast('Published')
+    } catch {
+      showToast('Publish failed')
+    }
+  }
+
+  function handleClearDraft() {
+    clearDraftFromStorage(LOCAL_DRAFT_STORAGE_KEY)
+    setDraftAvailable(false)
+    showToast('Draft cleared')
   }
 
   function updateSelectedNode(updater: (node: FlowBoardNode) => FlowBoardNode) {
@@ -405,19 +467,7 @@ function App() {
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
             onConnect={handleConnect}
-            onSelectionChange={({ nodes: selectedNodes, edges: selectedEdges }) => {
-              if (selectedNodes.length > 0) {
-                setSelection({ type: 'node', id: selectedNodes[0].id })
-                return
-              }
-
-              if (selectedEdges.length > 0) {
-                setSelection({ type: 'edge', id: selectedEdges[0].id })
-                return
-              }
-
-              setSelection(null)
-            }}
+            onSelectionChange={handleSelectionChange}
             edgesReconnectable={isEditor}
             nodesDraggable={isEditor}
             nodesConnectable={isEditor}
@@ -496,14 +546,25 @@ function App() {
         ) : null}
 
         {isEditor ? (
-          <button
-            className="fab-add"
-            type="button"
-            onClick={() => openAddModal('issue')}
-            aria-label="Add card"
-          >
-            +
-          </button>
+          <div className="board-actions">
+            <button
+              className="fab-add"
+              type="button"
+              onClick={() => openAddModal('issue')}
+              aria-label="Add card"
+            >
+              +
+            </button>
+            <button className="hud-button" type="button" onClick={handlePublish} disabled={!isDirty}>
+              Publish
+            </button>
+            <button className="hud-button" type="button" onClick={() => fileInputRef.current?.click()}>
+              Import
+            </button>
+            <button className="hud-button" type="button" onClick={handleClearDraft} disabled={!draftAvailable}>
+              Clear draft
+            </button>
+          </div>
         ) : null}
 
         {isEditor && showAddModal && composerKind ? (
@@ -529,6 +590,12 @@ function App() {
             onSubmit={handleCreateNode}
             onClose={closeAddModal}
           />
+        ) : null}
+
+        {toast ? (
+          <div className="toast" key={toast}>
+            {toast}
+          </div>
         ) : null}
       </section>
     </main>

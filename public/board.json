@@ -2,42 +2,61 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-09T12:25:00.747Z"
+    "updatedAt": "2026-03-09T12:45:48.227Z"
   },
   "nodes": [
     {
-      "id": "node-e43b0e30-649f-4afd-ad9b-6626c07e6306",
+      "id": "node-za9k73or",
       "kind": "issue",
-      "githubUrl": "https://github.com/pingdotgg/t3code/issues/511",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/4",
       "repoSlug": "pingdotgg/t3code",
-      "number": 511,
-      "title": "title",
+      "number": 4,
+      "title": "4",
       "state": "open",
       "position": {
-        "x": 314.78,
-        "y": 125.33
+        "x": 148.25,
+        "y": 30
       }
     },
     {
-      "id": "node-9ff514d1-573b-45de-bc16-287cfc217467",
+      "id": "node-zf0cyeja",
       "kind": "pr",
-      "githubUrl": "https://github.com/pingdotgg/t3code/pull/11",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/7",
       "repoSlug": "pingdotgg/t3code",
-      "number": 11,
-      "title": "dd",
+      "number": 7,
+      "title": "u",
       "state": "open",
       "position": {
-        "x": 354.62,
-        "y": 155.18
+        "x": 495,
+        "y": 3.75
+      }
+    },
+    {
+      "id": "node-kxnag62m",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/8",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 8,
+      "title": "i",
+      "state": "draft",
+      "position": {
+        "x": 422.5,
+        "y": 195
       }
     }
   ],
   "edges": [
     {
-      "id": "edge-20de9a62-0f37-4f50-9b8b-f3fbdd0c19a7",
-      "source": "node-e43b0e30-649f-4afd-ad9b-6626c07e6306",
-      "target": "node-e43b0e30-649f-4afd-ad9b-6626c07e6306",
-      "kind": "relates"
+      "id": "edge-rj10ui3x",
+      "source": "node-za9k73or",
+      "target": "node-zf0cyeja",
+      "kind": "alternative"
+    },
+    {
+      "id": "edge-0zdg90nx",
+      "source": "node-za9k73or",
+      "target": "node-kxnag62m",
+      "kind": "alternative"
     }
   ]
 }

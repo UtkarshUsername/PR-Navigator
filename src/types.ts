@@ -1,6 +1,8 @@
 import type { Edge, Node } from '@xyflow/react'
 
 export type AppMode = 'viewer' | 'editor'
+export type ThemePreference = 'system' | 'light' | 'dark'
+export type ResolvedTheme = 'light' | 'dark'
 
 export type BoardNodeKind = 'issue' | 'pr'
 export type BoardNodeState = 'open' | 'closed' | 'merged' | 'draft'

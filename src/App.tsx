@@ -26,10 +26,19 @@ import { AddCardModal } from './components/AddCardModal'
 import { GraphNode } from './components/GraphNode'
 import { InspectorPanel } from './components/InspectorPanel'
 import { RepoSelector } from './components/RepoSelector'
-import { DEFAULT_BOARD_TITLE, LOCAL_DRAFT_STORAGE_KEY } from './constants'
+import { ThemeToggle } from './components/ThemeToggle'
+import { APP_NAME, DEFAULT_BOARD_TITLE, LOCAL_DRAFT_STORAGE_KEY, THEME_STORAGE_KEY } from './constants'
 import { createBoardSnapshot, createEmptyBoard, serializeBoardData } from './lib/board'
 import { boardToFlowEdges, boardToFlowNodes, createBoardFromFlow, createDecoratedEdge } from './lib/flow'
-import { getViewerRedirectPath } from './lib/routing'
+import { getViewerRedirectPath, isViewerPath } from './lib/routing'
+import {
+  applyThemePreferenceToDocument,
+  getSystemPrefersDark,
+  loadThemePreference,
+  resolveThemePreference,
+  saveThemePreference,
+  subscribeToSystemThemePreference,
+} from './lib/theme'
 import {
   clearDraftFromStorage,
   fetchBoardData,
@@ -46,10 +55,12 @@ import type {
   FlowBoardEdge,
   FlowBoardNode,
   SelectionState,
+  ThemePreference,
 } from './types'
 
 const APP_MODE: AppMode = import.meta.env.VITE_APP_MODE === 'viewer' ? 'viewer' : 'editor'
 const BOARD_DATA_PATH = import.meta.env.VITE_BOARD_DATA_PATH || '/board.json'
+const VIEWER_TITLE = 'T3 Code PR Navigator'
 
 const nodeTypes = {
   navigator: GraphNode,
@@ -79,6 +90,10 @@ function App() {
   const [hasHydrated, setHasHydrated] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [themePreference, setThemePreference] = useState<ThemePreference>(() =>
+    loadThemePreference(THEME_STORAGE_KEY),
+  )
+  const [systemPrefersDark, setSystemPrefersDark] = useState(() => getSystemPrefersDark())
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function showToast(message: string) {
@@ -89,6 +104,10 @@ function App() {
 
   const deferredSelection = useDeferredValue(selection)
   const liveBoard = useMemo(() => createBoardFromFlow({ meta, nodes, edges }), [edges, meta, nodes])
+  const resolvedTheme = useMemo(
+    () => resolveThemePreference(themePreference, systemPrefersDark),
+    [systemPrefersDark, themePreference],
+  )
 
   const selectedNode = useMemo(
     () =>
@@ -152,12 +171,26 @@ function App() {
   }, [isEditor])
 
   useEffect(() => {
+    return subscribeToSystemThemePreference(setSystemPrefersDark)
+  }, [])
+
+  useEffect(() => {
+    applyThemePreferenceToDocument(themePreference)
+    saveThemePreference(THEME_STORAGE_KEY, themePreference)
+  }, [themePreference])
+
+  useEffect(() => {
     if (!viewerRedirectPath) {
       return
     }
 
     const { search, hash } = window.location
     window.location.replace(`${viewerRedirectPath}${search}${hash}`)
+  }, [viewerRedirectPath])
+
+  useEffect(() => {
+    document.title =
+      APP_MODE === 'viewer' && isViewerPath(window.location.pathname) ? VIEWER_TITLE : APP_NAME
   }, [viewerRedirectPath])
 
   useEffect(() => {
@@ -555,19 +588,26 @@ function App() {
           </button>
         ) : null}
 
-        {isEditor ? (
-          <div className="board-actions-right">
-            <button className="hud-button" type="button" onClick={handlePublish} disabled={!isDirty}>
-              Publish
-            </button>
-            <button className="hud-button" type="button" onClick={() => fileInputRef.current?.click()}>
-              Import
-            </button>
-            <button className="hud-button" type="button" onClick={handleClearDraft} disabled={!draftAvailable}>
-              Clear draft
-            </button>
-          </div>
-        ) : null}
+        <div className="board-actions-right">
+          <ThemeToggle
+            preference={themePreference}
+            resolvedTheme={resolvedTheme}
+            onPreferenceChange={setThemePreference}
+          />
+          {isEditor ? (
+            <>
+              <button className="hud-button" type="button" onClick={handlePublish} disabled={!isDirty}>
+                Publish
+              </button>
+              <button className="hud-button" type="button" onClick={() => fileInputRef.current?.click()}>
+                Import
+              </button>
+              <button className="hud-button" type="button" onClick={handleClearDraft} disabled={!draftAvailable}>
+                Clear draft
+              </button>
+            </>
+          ) : null}
+        </div>
 
         <RepoSelector selectedRepo={selectedRepo} onRepoChange={setSelectedRepo} />
 

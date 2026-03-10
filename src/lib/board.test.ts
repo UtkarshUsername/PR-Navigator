@@ -81,7 +81,7 @@ describe('board schema', () => {
     }
   })
 
-  it('accepts legacy relationship kinds and normalizes them', () => {
+  it('rejects legacy relationship kinds', () => {
     const result = safeParseBoardData({
       version: 1,
       meta: {
@@ -120,9 +120,9 @@ describe('board schema', () => {
       ],
     })
 
-    expect(result.success).toBe(true)
-    if (result.success) {
-      expect(result.data.edges[0]?.kind).toBe('solved_by')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toContain('Invalid option')
     }
   })
 })

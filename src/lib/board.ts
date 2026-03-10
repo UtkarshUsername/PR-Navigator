@@ -24,13 +24,6 @@ const edgeKindSchema = z.enum(
   ] satisfies BoardEdgeKind[],
 )
 
-const LEGACY_EDGE_KIND_MAP: Record<string, BoardEdgeKind> = {
-  addresses: 'solved_by',
-  alternative: 'has_option',
-  builds_on: 'continued_by',
-  relates: 'relates_to',
-}
-
 const positionSchema = z.object({
   x: z.number().finite(),
   y: z.number().finite(),
@@ -119,13 +112,13 @@ export function createEmptyBoard(title = DEFAULT_BOARD_TITLE): BoardData {
 }
 
 export function parseBoardData(input: unknown): BoardData {
-  return boardDataSchema.parse(normalizeBoardData(input)) as BoardData
+  return boardDataSchema.parse(input) as BoardData
 }
 
 export function safeParseBoardData(input: unknown):
   | { success: true; data: BoardData }
   | { success: false; error: string } {
-  const result = boardDataSchema.safeParse(normalizeBoardData(input))
+  const result = boardDataSchema.safeParse(input)
 
   if (result.success) {
     return { success: true, data: result.data as BoardData }
@@ -160,42 +153,4 @@ export function serializeBoardData(board: BoardData): string {
 export function getEdgeDisplayLabel(kind: BoardEdgeKind, label: string | undefined): string {
   const trimmed = label?.trim()
   return trimmed && trimmed.length > 0 ? trimmed : EDGE_KIND_LABELS[kind]
-}
-
-function normalizeBoardData(input: unknown): unknown {
-  if (!input || typeof input !== 'object') {
-    return input
-  }
-
-  const board = input as { edges?: unknown[] }
-
-  if (!Array.isArray(board.edges)) {
-    return input
-  }
-
-  return {
-    ...board,
-    edges: board.edges.map((edge) => normalizeBoardEdge(edge)),
-  }
-}
-
-function normalizeBoardEdge(edge: unknown): unknown {
-  if (!edge || typeof edge !== 'object') {
-    return edge
-  }
-
-  const candidate = edge as { kind?: unknown }
-
-  return {
-    ...candidate,
-    kind: normalizeEdgeKind(candidate.kind),
-  }
-}
-
-function normalizeEdgeKind(kind: unknown): unknown {
-  if (typeof kind !== 'string') {
-    return kind
-  }
-
-  return LEGACY_EDGE_KIND_MAP[kind] ?? kind
 }

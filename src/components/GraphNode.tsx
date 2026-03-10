@@ -1,11 +1,12 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 
-import { formatNodeState } from '../constants'
+import { formatNodeState, getNodeStateBadgeTone } from '../constants'
 import type { FlowBoardNode } from '../types'
 
 export function GraphNode({ data, selected }: NodeProps<FlowBoardNode>) {
   const nodeLabel = data.kind === 'issue' ? 'Issue' : 'PR'
   const ownedClassName = data.isOwnedByMe ? 'nav-node--owned' : ''
+  const stateBadgeTone = getNodeStateBadgeTone(data.kind, data.state)
 
   return (
     <div className={`nav-node nav-node--${data.kind} ${ownedClassName} ${selected ? 'is-selected' : ''}`}>
@@ -29,7 +30,11 @@ export function GraphNode({ data, selected }: NodeProps<FlowBoardNode>) {
               {nodeLabel} #{data.number}
             </span>
           </div>
-          {data.state ? <span className="nav-node__state">{formatNodeState(data.state)}</span> : null}
+          {data.state && stateBadgeTone ? (
+            <span className={`status-badge status-badge--compact status-badge--${stateBadgeTone}`}>
+              {formatNodeState(data.state)}
+            </span>
+          ) : null}
         </div>
 
         <div className="nav-node__title">{data.title.trim() || `Untitled ${nodeLabel}`}</div>

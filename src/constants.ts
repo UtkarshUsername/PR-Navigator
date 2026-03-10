@@ -1,5 +1,12 @@
 import type { BoardEdgeKind, BoardNodeKind, BoardNodeState } from './types'
 
+export type NodeStateBadgeTone =
+  | 'open'
+  | 'issue-closed'
+  | 'pr-closed'
+  | 'merged'
+  | 'draft'
+
 export const APP_NAME = 'PR Navigator'
 export const LOCAL_DRAFT_STORAGE_KEY = 'pr-navigator/local-draft'
 export const DEFAULT_BOARD_TITLE = 'PR Navigator Board'
@@ -58,4 +65,19 @@ export function formatNodeState(state: BoardNodeState | undefined): string {
   }
 
   return state.charAt(0).toUpperCase() + state.slice(1)
+}
+
+export function getNodeStateBadgeTone(
+  kind: BoardNodeKind,
+  state: BoardNodeState | undefined,
+): NodeStateBadgeTone | null {
+  if (!state) {
+    return null
+  }
+
+  if (state === 'closed') {
+    return kind === 'issue' ? 'issue-closed' : 'pr-closed'
+  }
+
+  return state
 }

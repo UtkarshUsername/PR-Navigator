@@ -1,4 +1,10 @@
-import { EDGE_KIND_HELP, EDGE_KIND_LABELS, EDGE_KIND_OPTIONS, formatNodeState } from '../constants'
+import {
+  EDGE_KIND_HELP,
+  EDGE_KIND_LABELS,
+  EDGE_KIND_OPTIONS,
+  formatNodeState,
+  getNodeStateBadgeTone,
+} from '../constants'
 import { getEdgeDisplayLabel } from '../lib/board'
 import type { BoardEdgeKind, BoardNodeState, FlowBoardEdge, FlowBoardNode } from '../types'
 
@@ -38,6 +44,7 @@ export function InspectorPanel({
   if (selectedNode) {
     const stateOptions: BoardNodeState[] =
       selectedNode.data.kind === 'issue' ? ['open', 'closed'] : ['draft', 'open', 'closed', 'merged']
+    const stateBadgeTone = getNodeStateBadgeTone(selectedNode.data.kind, selectedNode.data.state)
 
     return (
       <aside className="selection-panel">
@@ -86,7 +93,15 @@ export function InspectorPanel({
           </div>
           <div className="selection-panel__meta-row">
             <dt>State</dt>
-            <dd>{formatNodeState(selectedNode.data.state)}</dd>
+            <dd>
+              {selectedNode.data.state && stateBadgeTone ? (
+                <span className={`status-badge status-badge--${stateBadgeTone}`}>
+                  {formatNodeState(selectedNode.data.state)}
+                </span>
+              ) : (
+                formatNodeState(selectedNode.data.state)
+              )}
+            </dd>
           </div>
           <div className="selection-panel__meta-row">
             <dt>Authorship</dt>

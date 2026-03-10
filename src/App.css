@@ -275,6 +275,46 @@
   text-align: right;
 }
 
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.4rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  color: #f0f6fc;
+  white-space: nowrap;
+}
+
+.status-badge--compact {
+  min-height: 1.08rem;
+  padding: 0.12rem 0.34rem;
+  font-size: 0.62rem;
+}
+
+.status-badge--open {
+  background: #238636;
+}
+
+.status-badge--issue-closed,
+.status-badge--merged {
+  background: #8957e5;
+}
+
+.status-badge--pr-closed {
+  background: #da3633;
+}
+
+.status-badge--draft {
+  background: #6e7681;
+}
+
 .selection-panel__actions {
   display: flex;
   flex-wrap: wrap;
@@ -440,8 +480,7 @@
   gap: 0.36rem;
 }
 
-.nav-node__label,
-.nav-node__state {
+.nav-node__label {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 0.62rem;
   letter-spacing: 0.03em;
@@ -457,14 +496,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: #e2e8ef;
-}
-
-.nav-node__state {
-  flex-shrink: 0;
-  padding: 0.12rem 0.34rem;
-  border: 1px solid #39414b;
-  border-radius: 999px;
-  color: var(--text-secondary);
 }
 
 .nav-node__title {

@@ -509,7 +509,9 @@
 }
 
 .react-flow__edge-textbg {
-  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.28));
+  fill: var(--app-bg);
+  stroke: none;
+  filter: none;
 }
 
 .react-flow__controls,

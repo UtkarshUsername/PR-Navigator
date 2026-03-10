@@ -12,7 +12,7 @@ import type {
   NavigatorEdgeData,
   NavigatorNodeData,
 } from '../types'
-import { getEdgeDisplayLabel } from './board'
+import { getEdgeDisplayLabel, normalizeEdgeLabel } from './board'
 
 const EDGE_COLORS: Record<BoardEdgeKind, string> = {
   solved_by: '#ece8de',
@@ -69,7 +69,7 @@ export function flowToBoardEdges(edges: FlowBoardEdge[]): BoardEdge[] {
     source: edge.source,
     target: edge.target,
     kind: edge.data?.kind ?? 'relates_to',
-    label: edge.data?.label?.trim() ? edge.data.label.trim() : undefined,
+    label: normalizeEdgeLabel(edge.data?.label),
   }))
 }
 
@@ -90,11 +90,14 @@ export function createDecoratedEdge(edge: {
   id: string
   source: string
   target: string
+  kind?: BoardEdgeKind
+  label?: string
   data?: NavigatorEdgeData
 }): FlowBoardEdge {
-  const kind = edge.data?.kind ?? 'relates_to'
+  const kind = edge.data?.kind ?? edge.kind ?? 'relates_to'
+  const customLabel = normalizeEdgeLabel(edge.data?.label ?? edge.label)
   const stroke = EDGE_COLORS[kind]
-  const displayLabel = getEdgeDisplayLabel(kind, edge.data?.label)
+  const displayLabel = getEdgeDisplayLabel(kind, customLabel)
   const isOptionPath = kind === 'has_option'
 
   return {
@@ -123,7 +126,7 @@ export function createDecoratedEdge(edge: {
     },
     data: {
       kind,
-      label: edge.data?.label?.trim() ? edge.data.label.trim() : undefined,
+      label: customLabel,
     },
     ariaLabel: `Left-to-right relationship: ${displayLabel}`,
   }

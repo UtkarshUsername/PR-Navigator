@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-10T10:31:31.912Z"
+    "updatedAt": "2026-03-10T10:39:11.410Z"
   },
   "nodes": [
     {
@@ -29,8 +29,8 @@
       "state": "closed",
       "isOwnedByMe": true,
       "position": {
-        "x": -841.15,
-        "y": 239.03
+        "x": -501.83,
+        "y": 211.43
       }
     },
     {
@@ -43,8 +43,8 @@
       "state": "closed",
       "isOwnedByMe": true,
       "position": {
-        "x": -644.23,
-        "y": 253.14
+        "x": -290.61,
+        "y": 223.51
       }
     },
     {

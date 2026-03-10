@@ -151,7 +151,20 @@ export function serializeBoardData(board: BoardData): string {
   return JSON.stringify(board, null, 2)
 }
 
-export function getEdgeDisplayLabel(kind: BoardEdgeKind, label: string | undefined): string {
+export function normalizeEdgeLabel(label: string | undefined): string | undefined {
   const trimmed = label?.trim()
-  return trimmed && trimmed.length > 0 ? trimmed : EDGE_KIND_LABELS[kind]
+
+  if (!trimmed) {
+    return undefined
+  }
+
+  if (Object.values(EDGE_KIND_LABELS).includes(trimmed)) {
+    return undefined
+  }
+
+  return trimmed
+}
+
+export function getEdgeDisplayLabel(kind: BoardEdgeKind, label: string | undefined): string {
+  return normalizeEdgeLabel(label) ?? EDGE_KIND_LABELS[kind]
 }

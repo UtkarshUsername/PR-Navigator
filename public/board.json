@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-10T10:39:11.410Z"
+    "updatedAt": "2026-03-10T12:28:32.750Z"
   },
   "nodes": [
     {
@@ -29,8 +29,8 @@
       "state": "closed",
       "isOwnedByMe": true,
       "position": {
-        "x": -501.83,
-        "y": 211.43
+        "x": -502.72,
+        "y": 200.71
       }
     },
     {
@@ -43,8 +43,8 @@
       "state": "closed",
       "isOwnedByMe": true,
       "position": {
-        "x": -290.61,
-        "y": 223.51
+        "x": -312.04,
+        "y": 214.58
       }
     },
     {
@@ -86,6 +86,20 @@
       "position": {
         "x": -184.63,
         "y": -68.61
+      }
+    },
+    {
+      "id": "node-eeqescsl",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/244",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 244,
+      "title": "Non-existent dirs can be added as projects",
+      "state": "closed",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -118.33,
+        "y": 227.27
       }
     }
   ],

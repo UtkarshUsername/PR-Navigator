@@ -28,6 +28,7 @@ export function boardToFlowNodes(board: BoardData, mode: AppMode): FlowBoardNode
     id: node.id,
     type: 'navigator',
     position: node.position,
+    className: mode === 'viewer' ? 'nopan' : undefined,
     data: {
       kind: node.kind,
       githubUrl: node.githubUrl,

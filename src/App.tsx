@@ -18,6 +18,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type MouseEvent,
 } from 'react'
 
 import './App.css'
@@ -138,6 +139,15 @@ function App() {
     },
     [],
   )
+
+  const handleNodeClick = useCallback((event: MouseEvent, node: FlowBoardNode) => {
+    if (isEditor) {
+      return
+    }
+
+    event.preventDefault()
+    window.open(node.data.githubUrl, '_blank', 'noopener,noreferrer')
+  }, [isEditor])
 
   useEffect(() => {
     let cancelled = false
@@ -484,6 +494,7 @@ function App() {
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
             onConnect={handleConnect}
+            onNodeClick={handleNodeClick}
             onSelectionChange={handleSelectionChange}
             isValidConnection={(connection) => {
               if (!connection.source || !connection.target) {
@@ -541,6 +552,13 @@ function App() {
 
         {isEditor ? (
           <RepoSelector selectedRepo={selectedRepo} onRepoChange={setSelectedRepo} />
+        ) : null}
+
+        {!isEditor ? (
+          <aside className="viewer-legend" aria-label="Legend">
+            <span className="viewer-legend__swatch" aria-hidden="true" />
+            <p className="viewer-legend__text">Bright border means this issue or PR is by me.</p>
+          </aside>
         ) : null}
 
         {isEditor ? (

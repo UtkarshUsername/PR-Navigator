@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-10T12:28:32.750Z"
+    "updatedAt": "2026-03-10T19:05:36.591Z"
   },
   "nodes": [
     {
@@ -12,7 +12,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 284,
       "title": "Reset codex overrides button pushed out of card with long Codex binary path",
-      "state": "open",
+      "state": "closed",
       "isOwnedByMe": true,
       "position": {
         "x": -505.16,
@@ -68,7 +68,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 707,
       "title": "fix: prevent Codex overrides footer overflow with long binary paths",
-      "state": "open",
+      "state": "merged",
       "isOwnedByMe": true,
       "position": {
         "x": -184.15,

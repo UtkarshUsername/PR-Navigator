@@ -33,11 +33,8 @@ import { boardToFlowEdges, boardToFlowNodes, createBoardFromFlow, createDecorate
 import { getViewerRedirectPath, isViewerPath } from './lib/routing'
 import {
   applyThemePreferenceToDocument,
-  getSystemPrefersDark,
   loadThemePreference,
-  resolveThemePreference,
   saveThemePreference,
-  subscribeToSystemThemePreference,
 } from './lib/theme'
 import {
   clearDraftFromStorage,
@@ -93,7 +90,6 @@ function App() {
   const [themePreference, setThemePreference] = useState<ThemePreference>(() =>
     loadThemePreference(THEME_STORAGE_KEY),
   )
-  const [systemPrefersDark, setSystemPrefersDark] = useState(() => getSystemPrefersDark())
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function showToast(message: string) {
@@ -104,10 +100,6 @@ function App() {
 
   const deferredSelection = useDeferredValue(selection)
   const liveBoard = useMemo(() => createBoardFromFlow({ meta, nodes, edges }), [edges, meta, nodes])
-  const resolvedTheme = useMemo(
-    () => resolveThemePreference(themePreference, systemPrefersDark),
-    [systemPrefersDark, themePreference],
-  )
 
   const selectedNode = useMemo(
     () =>
@@ -169,10 +161,6 @@ function App() {
     event.preventDefault()
     window.open(node.data.githubUrl, '_blank', 'noopener,noreferrer')
   }, [isEditor])
-
-  useEffect(() => {
-    return subscribeToSystemThemePreference(setSystemPrefersDark)
-  }, [])
 
   useEffect(() => {
     applyThemePreferenceToDocument(themePreference)
@@ -584,14 +572,15 @@ function App() {
             onClick={() => openAddModal('issue')}
             aria-label="Add card"
           >
-            +
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+              <path d="M8 3.25v9.5M3.25 8h9.5" />
+            </svg>
           </button>
         ) : null}
 
         <div className="board-actions-right">
           <ThemeToggle
             preference={themePreference}
-            resolvedTheme={resolvedTheme}
             onPreferenceChange={setThemePreference}
           />
           {isEditor ? (

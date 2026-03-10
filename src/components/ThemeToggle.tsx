@@ -1,10 +1,9 @@
 import type { ReactNode } from 'react'
 
-import type { ResolvedTheme, ThemePreference } from '../types'
+import type { ThemePreference } from '../types'
 
 interface ThemeToggleProps {
   preference: ThemePreference
-  resolvedTheme: ResolvedTheme
   onPreferenceChange: (preference: ThemePreference) => void
 }
 
@@ -15,17 +14,6 @@ const THEME_OPTIONS: Array<{
   icon: ReactNode
 }> = [
   {
-    value: 'system',
-    label: 'Auto',
-    ariaLabel: 'Use the system theme',
-    icon: (
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
-        <rect x="2.25" y="2.75" width="11.5" height="8.5" rx="1.5" />
-        <path d="M6.25 13.25h3.5M8 11.25v2" />
-      </svg>
-    ),
-  },
-  {
     value: 'light',
     label: 'Light',
     ariaLabel: 'Use the light theme',
@@ -33,6 +21,17 @@ const THEME_OPTIONS: Array<{
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
         <circle cx="8" cy="8" r="2.75" />
         <path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.45 1.45M11.15 11.15l1.45 1.45M12.6 3.4l-1.45 1.45M4.85 11.15L3.4 12.6" />
+      </svg>
+    ),
+  },
+  {
+    value: 'system',
+    label: 'Auto',
+    ariaLabel: 'Use the system theme',
+    icon: (
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+        <rect x="2.25" y="2.75" width="11.5" height="8.5" rx="1.5" />
+        <path d="M6.25 13.25h3.5M8 11.25v2" />
       </svg>
     ),
   },
@@ -50,21 +49,10 @@ const THEME_OPTIONS: Array<{
 
 export function ThemeToggle({
   preference,
-  resolvedTheme,
   onPreferenceChange,
 }: ThemeToggleProps) {
-  const resolvedThemeLabel =
-    resolvedTheme.charAt(0).toUpperCase() + resolvedTheme.slice(1)
-  const currentLabel =
-    preference === 'system' ? `System · ${resolvedThemeLabel}` : resolvedThemeLabel
-
   return (
     <div className="theme-toggle">
-      <div className="theme-toggle__meta">
-        <span className="theme-toggle__eyebrow">Theme</span>
-        <span className="theme-toggle__value">{currentLabel}</span>
-      </div>
-
       <div className="theme-toggle__group" role="group" aria-label="Color theme">
         {THEME_OPTIONS.map((option) => {
           const isActive = option.value === preference

@@ -15,12 +15,12 @@ import type {
 import { getEdgeDisplayLabel, normalizeEdgeLabel } from './board'
 
 const EDGE_COLORS: Record<BoardEdgeKind, string> = {
-  solved_by: '#ece8de',
-  continued_by: '#f4efe2',
-  has_option: '#b9b2a5',
-  combines_into: '#d6cdbd',
-  followed_by: '#d0d9e4',
-  relates_to: '#c1c7d0',
+  solved_by: 'var(--edge-solved-by)',
+  continued_by: 'var(--edge-continued-by)',
+  has_option: 'var(--edge-has-option)',
+  combines_into: 'var(--edge-combines-into)',
+  followed_by: 'var(--edge-followed-by)',
+  relates_to: 'var(--edge-relates-to)',
 }
 
 export function boardToFlowNodes(board: BoardData, mode: AppMode): FlowBoardNode[] {
@@ -124,6 +124,14 @@ export function createDecoratedEdge(edge: {
       fontWeight: 600,
       letterSpacing: '0.03em',
     },
+    labelShowBg: true,
+    labelBgStyle: {
+      fill: 'var(--app-bg)',
+      stroke: 'none',
+      strokeWidth: 0,
+    },
+    labelBgPadding: [6, 3],
+    labelBgBorderRadius: 8,
     data: {
       kind,
       label: customLabel,

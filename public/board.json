@@ -2,23 +2,105 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-10T03:49:21.463Z"
+    "updatedAt": "2026-03-10T10:31:31.912Z"
   },
   "nodes": [
     {
-      "id": "node-exte2ddo",
+      "id": "node-issue-284",
       "kind": "issue",
-      "githubUrl": "https://github.com/pingdotgg/t3code/issues/4",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/284",
       "repoSlug": "pingdotgg/t3code",
-      "number": 4,
-      "title": "4",
+      "number": 284,
+      "title": "Reset codex overrides button pushed out of card with long Codex binary path",
       "state": "open",
       "isOwnedByMe": true,
       "position": {
-        "x": -233.86,
-        "y": -130.31
+        "x": -505.16,
+        "y": -114.01
+      }
+    },
+    {
+      "id": "node-issue-255",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/255",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 255,
+      "title": "Plan takes over significant vertical space with no option to hide",
+      "state": "closed",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -841.15,
+        "y": 239.03
+      }
+    },
+    {
+      "id": "node-issue-240",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/240",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 240,
+      "title": "Settings are not discoverable on Windows",
+      "state": "closed",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -644.23,
+        "y": 253.14
+      }
+    },
+    {
+      "id": "node-issue-236",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/236",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 236,
+      "title": "Checkpoints using git in non-git repos",
+      "state": "closed",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -503.71,
+        "y": 32.7
+      }
+    },
+    {
+      "id": "node-0tf54gn4",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/707",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 707,
+      "title": "fix: prevent Codex overrides footer overflow with long binary paths",
+      "state": "open",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -184.15,
+        "y": -224.64
+      }
+    },
+    {
+      "id": "node-gxq6lk56",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/320",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 320,
+      "title": "fix: everything AICodeKing reported",
+      "state": "merged",
+      "position": {
+        "x": -184.63,
+        "y": -68.61
       }
     }
   ],
-  "edges": []
+  "edges": [
+    {
+      "id": "edge-13pkyb3l",
+      "source": "node-issue-284",
+      "target": "node-0tf54gn4",
+      "kind": "solved_by"
+    },
+    {
+      "id": "edge-zlrpi727",
+      "source": "node-issue-236",
+      "target": "node-gxq6lk56",
+      "kind": "solved_by"
+    }
+  ]
 }

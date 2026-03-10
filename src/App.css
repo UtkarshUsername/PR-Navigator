@@ -593,7 +593,7 @@
 }
 
 .react-flow__edge-textbg {
-  fill: var(--app-bg);
+  fill: var(--edge-label-bg);
   stroke: none;
   stroke-width: 0;
   filter: none;

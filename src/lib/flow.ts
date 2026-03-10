@@ -126,7 +126,7 @@ export function createDecoratedEdge(edge: {
     },
     labelShowBg: true,
     labelBgStyle: {
-      fill: 'var(--app-bg)',
+      fill: 'var(--edge-label-bg)',
       stroke: 'none',
       strokeWidth: 0,
     },

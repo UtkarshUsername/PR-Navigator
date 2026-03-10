@@ -46,7 +46,7 @@
   --edge-combines-into: #7a88a2;
   --edge-followed-by: #5e7da8;
   --edge-relates-to: #66717f;
-  --edge-label-bg: var(--panel-bg);
+  --edge-label-bg: #eceff3;
   --edge-label-border: var(--panel-border);
   --edge-selected-stroke: #0f1822;
   --modal-backdrop: rgba(15, 23, 42, 0.18);
@@ -104,7 +104,7 @@
   --edge-combines-into: #b9c5dd;
   --edge-followed-by: #a9c3e5;
   --edge-relates-to: #c1c9d3;
-  --edge-label-bg: var(--panel-bg);
+  --edge-label-bg: #0c0e11;
   --edge-label-border: var(--panel-border);
   --edge-selected-stroke: #f5f8fc;
   --modal-backdrop: rgba(7, 9, 12, 0.72);
@@ -158,7 +158,7 @@
     --edge-combines-into: #b9c5dd;
     --edge-followed-by: #a9c3e5;
     --edge-relates-to: #c1c9d3;
-    --edge-label-bg: var(--panel-bg);
+    --edge-label-bg: #0c0e11;
     --edge-label-border: var(--panel-border);
     --edge-selected-stroke: #f5f8fc;
     --modal-backdrop: rgba(7, 9, 12, 0.72);

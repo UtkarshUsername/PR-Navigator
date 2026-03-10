@@ -1,4 +1,5 @@
 import {
+  ConnectionLineType,
   applyEdgeChanges,
   applyNodeChanges,
   type Connection,
@@ -475,6 +476,7 @@ function App() {
             deleteKeyCode={isEditor ? ['Delete', 'Backspace'] : null}
             proOptions={{ hideAttribution: true }}
             panOnDrag
+            connectionLineType={ConnectionLineType.Step}
             minZoom={0.35}
             maxZoom={1.6}
             fitViewOptions={{
@@ -485,6 +487,35 @@ function App() {
             }}
           />
         </div>
+
+        {isEditor ? (
+          <button
+            className="fab-add"
+            type="button"
+            onClick={() => openAddModal('issue')}
+            aria-label="Add card"
+          >
+            +
+          </button>
+        ) : null}
+
+        {isEditor ? (
+          <div className="board-actions-right">
+            <button className="hud-button" type="button" onClick={handlePublish} disabled={!isDirty}>
+              Publish
+            </button>
+            <button className="hud-button" type="button" onClick={() => fileInputRef.current?.click()}>
+              Import
+            </button>
+            <button className="hud-button" type="button" onClick={handleClearDraft} disabled={!draftAvailable}>
+              Clear draft
+            </button>
+          </div>
+        ) : null}
+
+        {isEditor ? (
+          <RepoSelector selectedRepo={selectedRepo} onRepoChange={setSelectedRepo} />
+        ) : null}
 
         {isEditor ? (
           <InspectorPanel
@@ -539,32 +570,6 @@ function App() {
             }
             onEdgeDelete={deleteSelectedEdge}
           />
-        ) : null}
-
-        {isEditor ? (
-          <RepoSelector selectedRepo={selectedRepo} onRepoChange={setSelectedRepo} />
-        ) : null}
-
-        {isEditor ? (
-          <div className="board-actions">
-            <button
-              className="fab-add"
-              type="button"
-              onClick={() => openAddModal('issue')}
-              aria-label="Add card"
-            >
-              +
-            </button>
-            <button className="hud-button" type="button" onClick={handlePublish} disabled={!isDirty}>
-              Publish
-            </button>
-            <button className="hud-button" type="button" onClick={() => fileInputRef.current?.click()}>
-              Import
-            </button>
-            <button className="hud-button" type="button" onClick={handleClearDraft} disabled={!draftAvailable}>
-              Clear draft
-            </button>
-          </div>
         ) : null}
 
         {isEditor && showAddModal && composerKind ? (

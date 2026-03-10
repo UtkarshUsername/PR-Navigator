@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-09T12:45:48.227Z"
+    "updatedAt": "2026-03-10T03:02:17.888Z"
   },
   "nodes": [
     {
@@ -14,21 +14,8 @@
       "title": "4",
       "state": "open",
       "position": {
-        "x": 148.25,
-        "y": 30
-      }
-    },
-    {
-      "id": "node-zf0cyeja",
-      "kind": "pr",
-      "githubUrl": "https://github.com/pingdotgg/t3code/pull/7",
-      "repoSlug": "pingdotgg/t3code",
-      "number": 7,
-      "title": "u",
-      "state": "open",
-      "position": {
-        "x": 495,
-        "y": 3.75
+        "x": -191.3,
+        "y": 23.59
       }
     },
     {
@@ -37,26 +24,20 @@
       "githubUrl": "https://github.com/pingdotgg/t3code/pull/8",
       "repoSlug": "pingdotgg/t3code",
       "number": 8,
-      "title": "i",
+      "title": "i8",
       "state": "draft",
       "position": {
-        "x": 422.5,
-        "y": 195
+        "x": 146.2,
+        "y": 37.53
       }
     }
   ],
   "edges": [
     {
-      "id": "edge-rj10ui3x",
-      "source": "node-za9k73or",
-      "target": "node-zf0cyeja",
-      "kind": "alternative"
-    },
-    {
       "id": "edge-0zdg90nx",
       "source": "node-za9k73or",
       "target": "node-kxnag62m",
-      "kind": "alternative"
+      "kind": "relates"
     }
   ]
 }

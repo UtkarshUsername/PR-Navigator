@@ -1,20 +1,32 @@
 :root {
-  font-family: 'Sora', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #f4f7fb;
-  background: #030405;
+  color: #f2f5f8;
+  background: #0d0f12;
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --app-bg: #0d0f12;
+  --panel-bg: #15181d;
+  --panel-bg-alt: #1b2027;
+  --panel-bg-deep: #0f1216;
+  --panel-border: #2b3139;
+  --panel-border-strong: #414956;
+  --text-primary: #f2f5f8;
+  --text-secondary: #a3adb8;
+  --text-muted: #8b95a1;
+  --danger-text: #f0c7c7;
+  --danger-border: #654a4a;
   --xy-background-color-default: transparent;
   --xy-node-background-color-default: transparent;
   --xy-node-border-default: none;
-  --xy-edge-stroke-default: rgba(244, 247, 251, 0.82);
-  --xy-handle-background-color-default: #f4f7fb;
-  --xy-selection-background-color-default: rgba(244, 247, 251, 0.08);
-  --xy-selection-border-default: 1px solid rgba(244, 247, 251, 0.24);
+  --xy-edge-stroke-default: #cfd6de;
+  --xy-handle-background-color-default: #f2f5f8;
+  --xy-selection-background-color-default: rgba(242, 245, 248, 0.05);
+  --xy-selection-border-default: 1px solid rgba(242, 245, 248, 0.18);
 }
 
 * {
@@ -34,12 +46,12 @@ button,
 input,
 select,
 textarea {
-  font-family: 'Sora', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
 }
 
 body {
   min-height: 100vh;
-  background: #030405;
+  background: var(--app-bg);
 }
 
 button,

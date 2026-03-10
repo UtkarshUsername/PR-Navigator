@@ -56,7 +56,7 @@ export interface NavigatorEdgeData extends Record<string, unknown> {
 }
 
 export type FlowBoardNode = Node<NavigatorNodeData, 'navigator'>
-export type FlowBoardEdge = Edge<NavigatorEdgeData, 'smoothstep'>
+export type FlowBoardEdge = Edge<NavigatorEdgeData, 'step'>
 
 export type SelectionState =
   | { type: 'node'; id: string }

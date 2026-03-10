@@ -16,10 +16,10 @@ import type {
 import { getEdgeDisplayLabel } from './board'
 
 const EDGE_COLORS: Record<BoardEdgeKind, string> = {
-  addresses: 'rgba(244, 247, 251, 0.92)',
-  alternative: 'rgba(244, 247, 251, 0.72)',
-  builds_on: 'rgba(244, 247, 251, 0.92)',
-  relates: 'rgba(244, 247, 251, 0.82)',
+  addresses: '#ece8de',
+  alternative: '#b9b2a5',
+  builds_on: '#f4efe2',
+  relates: '#d7d0c2',
 }
 
 export function boardToFlowNodes(board: BoardData, mode: AppMode): FlowBoardNode[] {
@@ -97,17 +97,17 @@ export function createDecoratedEdge(edge: {
     id: edge.id,
     source: edge.source,
     target: edge.target,
-    type: 'smoothstep',
+    type: 'step',
     animated: false,
     markerEnd: {
       type: MarkerType.ArrowClosed,
       color: stroke,
-      width: 16,
-      height: 16,
+      width: 18,
+      height: 18,
     },
     style: {
       stroke,
-      strokeWidth: 2,
+      strokeWidth: 2.2,
       strokeDasharray: isAlternative ? '7 6' : undefined,
     },
     label: displayLabel,
@@ -115,16 +115,16 @@ export function createDecoratedEdge(edge: {
       fill: stroke,
       fontSize: 10,
       fontWeight: 600,
-      letterSpacing: '0.16em',
+      letterSpacing: '0.14em',
       textTransform: 'uppercase',
     },
     labelBgStyle: {
-      fill: 'rgba(10, 12, 15, 0.96)',
-      stroke: 'rgba(244, 247, 251, 0.14)',
+      fill: '#181512',
+      stroke: '#3f3a33',
       strokeWidth: 1,
     },
     labelBgPadding: [7, 4],
-    labelBgBorderRadius: 999,
+    labelBgBorderRadius: 10,
     data: {
       kind,
       label: edge.data?.label?.trim() ? edge.data.label.trim() : undefined,

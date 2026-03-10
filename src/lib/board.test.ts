@@ -42,7 +42,7 @@ describe('board schema', () => {
           id: 'edge-1',
           source: 'missing-a',
           target: 'missing-b',
-          kind: 'relates',
+          kind: 'relates_to',
         },
       ],
     })
@@ -78,6 +78,51 @@ describe('board schema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error).toContain('not valid for issue node')
+    }
+  })
+
+  it('accepts legacy relationship kinds and normalizes them', () => {
+    const result = safeParseBoardData({
+      version: 1,
+      meta: {
+        title: 'Legacy labels',
+        updatedAt: '2026-03-08T00:00:00.000Z',
+      },
+      nodes: [
+        {
+          id: 'node-1',
+          kind: 'issue',
+          githubUrl: 'https://github.com/octocat/Hello-World/issues/1',
+          repoSlug: 'octocat/Hello-World',
+          number: 1,
+          title: 'Legacy issue',
+          state: 'open',
+          position: { x: 0, y: 0 },
+        },
+        {
+          id: 'node-2',
+          kind: 'pr',
+          githubUrl: 'https://github.com/octocat/Hello-World/pull/2',
+          repoSlug: 'octocat/Hello-World',
+          number: 2,
+          title: 'Legacy PR',
+          state: 'open',
+          position: { x: 320, y: 0 },
+        },
+      ],
+      edges: [
+        {
+          id: 'edge-1',
+          source: 'node-1',
+          target: 'node-2',
+          kind: 'addresses',
+        },
+      ],
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.edges[0]?.kind).toBe('solved_by')
     }
   })
 })

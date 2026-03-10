@@ -56,7 +56,9 @@
 }
 
 .app-error__body,
-.selection-panel__meta dd {
+.selection-panel__meta dd,
+.selection-panel__helper,
+.selection-panel__warning {
   margin: 0;
   color: var(--text-secondary);
 }
@@ -252,6 +254,16 @@
   gap: 0.55rem;
 }
 
+.selection-panel__helper,
+.selection-panel__warning {
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.selection-panel__warning {
+  color: #f0c7c7;
+}
+
 .field-group {
   display: grid;
   gap: 0.45rem;
@@ -418,7 +430,7 @@
 
 .react-flow__edge-text {
   font-family: 'IBM Plex Mono', monospace !important;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.03em;
 }
 
 .react-flow__edge-textbg {

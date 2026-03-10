@@ -103,15 +103,17 @@ function App() {
 
   const edgeContext = useMemo(() => {
     if (!selectedEdge) {
-      return { sourceLabel: null, targetLabel: null }
+      return { leftLabel: null, rightLabel: null, edgeReadsLeftToRight: true }
     }
 
-    const sourceNode = nodes.find((node) => node.id === selectedEdge.source)
-    const targetNode = nodes.find((node) => node.id === selectedEdge.target)
+    const leftNode = nodes.find((node) => node.id === selectedEdge.source)
+    const rightNode = nodes.find((node) => node.id === selectedEdge.target)
 
     return {
-      sourceLabel: sourceNode ? `${sourceNode.data.repoSlug} #${sourceNode.data.number}` : null,
-      targetLabel: targetNode ? `${targetNode.data.repoSlug} #${targetNode.data.number}` : null,
+      leftLabel: leftNode ? `${leftNode.data.repoSlug} #${leftNode.data.number}` : null,
+      rightLabel: rightNode ? `${rightNode.data.repoSlug} #${rightNode.data.number}` : null,
+      edgeReadsLeftToRight:
+        !leftNode || !rightNode ? true : isNodePositionLeftToRight(leftNode, rightNode),
     }
   }, [nodes, selectedEdge])
 
@@ -271,12 +273,20 @@ function App() {
       return
     }
 
+    const leftNode = nodes.find((node) => node.id === connection.source)
+    const rightNode = nodes.find((node) => node.id === connection.target)
+
+    if (!leftNode || !rightNode || !isNodePositionLeftToRight(leftNode, rightNode)) {
+      showToast('Connect the left item to the right item')
+      return
+    }
+
     const baseEdge = createDecoratedEdge({
       id: createId('edge'),
       source: connection.source,
       target: connection.target,
       data: {
-        kind: 'relates',
+        kind: 'relates_to',
       },
     })
 
@@ -469,6 +479,16 @@ function App() {
             onEdgesChange={handleEdgesChange}
             onConnect={handleConnect}
             onSelectionChange={handleSelectionChange}
+            isValidConnection={(connection) => {
+              if (!connection.source || !connection.target) {
+                return false
+              }
+
+              const leftNode = nodes.find((node) => node.id === connection.source)
+              const rightNode = nodes.find((node) => node.id === connection.target)
+
+              return !!leftNode && !!rightNode && isNodePositionLeftToRight(leftNode, rightNode)
+            }}
             edgesReconnectable={isEditor}
             nodesDraggable={isEditor}
             nodesConnectable={isEditor}
@@ -521,8 +541,9 @@ function App() {
           <InspectorPanel
             selectedNode={selectedNode}
             selectedEdge={selectedEdge}
-            sourceLabel={edgeContext.sourceLabel}
-            targetLabel={edgeContext.targetLabel}
+            leftLabel={edgeContext.leftLabel}
+            rightLabel={edgeContext.rightLabel}
+            edgeReadsLeftToRight={edgeContext.edgeReadsLeftToRight}
             onNodeTitleChange={(value) =>
               updateSelectedNode((node) => ({
                 ...node,
@@ -562,7 +583,7 @@ function App() {
                   source: edge.source,
                   target: edge.target,
                   data: {
-                    kind: edge.data?.kind ?? 'relates',
+                    kind: edge.data?.kind ?? 'relates_to',
                     label: value,
                   },
                 }),
@@ -638,6 +659,10 @@ function getSuggestedPosition(
   }
 
   return reactFlow.screenToFlowPosition(viewportPosition)
+}
+
+function isNodePositionLeftToRight(leftNode: FlowBoardNode, rightNode: FlowBoardNode) {
+  return leftNode.id !== rightNode.id && leftNode.position.x < rightNode.position.x
 }
 
 function createId(prefix: 'node' | 'edge') {

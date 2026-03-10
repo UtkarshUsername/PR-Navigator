@@ -26,9 +26,7 @@ export function GraphNode({ data, selected }: NodeProps<FlowBoardNode>) {
 
   return (
     <div className={`nav-node nav-node--${data.kind} ${selected ? 'is-selected' : ''}`}>
-      <Handle className="nav-node__handle nav-node__handle--top" type="target" position={Position.Top} />
       <Handle className="nav-node__handle nav-node__handle--left" type="target" position={Position.Left} />
-      <Handle className="nav-node__handle nav-node__handle--bottom" type="source" position={Position.Bottom} />
       <Handle className="nav-node__handle nav-node__handle--right" type="source" position={Position.Right} />
 
       <div

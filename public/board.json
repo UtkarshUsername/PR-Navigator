@@ -37,7 +37,7 @@
       "id": "edge-0zdg90nx",
       "source": "node-za9k73or",
       "target": "node-kxnag62m",
-      "kind": "relates"
+      "kind": "solved_by"
     }
   ]
 }

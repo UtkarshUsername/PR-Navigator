@@ -1,6 +1,5 @@
 import { MarkerType } from '@xyflow/react'
 
-import { EDGE_KIND_LABELS } from '../constants'
 import type {
   AppMode,
   BoardData,
@@ -16,10 +15,12 @@ import type {
 import { getEdgeDisplayLabel } from './board'
 
 const EDGE_COLORS: Record<BoardEdgeKind, string> = {
-  addresses: '#ece8de',
-  alternative: '#b9b2a5',
-  builds_on: '#f4efe2',
-  relates: '#d7d0c2',
+  solved_by: '#ece8de',
+  continued_by: '#f4efe2',
+  has_option: '#b9b2a5',
+  combines_into: '#d6cdbd',
+  followed_by: '#d0d9e4',
+  relates_to: '#c1c7d0',
 }
 
 export function boardToFlowNodes(board: BoardData, mode: AppMode): FlowBoardNode[] {
@@ -64,7 +65,7 @@ export function flowToBoardEdges(edges: FlowBoardEdge[]): BoardEdge[] {
     id: edge.id,
     source: edge.source,
     target: edge.target,
-    kind: edge.data?.kind ?? 'relates',
+    kind: edge.data?.kind ?? 'relates_to',
     label: edge.data?.label?.trim() ? edge.data.label.trim() : undefined,
   }))
 }
@@ -88,10 +89,10 @@ export function createDecoratedEdge(edge: {
   target: string
   data?: NavigatorEdgeData
 }): FlowBoardEdge {
-  const kind = edge.data?.kind ?? 'relates'
+  const kind = edge.data?.kind ?? 'relates_to'
   const stroke = EDGE_COLORS[kind]
   const displayLabel = getEdgeDisplayLabel(kind, edge.data?.label)
-  const isAlternative = kind === 'alternative'
+  const isOptionPath = kind === 'has_option'
 
   return {
     id: edge.id,
@@ -108,15 +109,14 @@ export function createDecoratedEdge(edge: {
     style: {
       stroke,
       strokeWidth: 2.2,
-      strokeDasharray: isAlternative ? '7 6' : undefined,
+      strokeDasharray: isOptionPath ? '7 6' : undefined,
     },
     label: displayLabel,
     labelStyle: {
       fill: stroke,
       fontSize: 10,
       fontWeight: 600,
-      letterSpacing: '0.14em',
-      textTransform: 'uppercase',
+      letterSpacing: '0.03em',
     },
     labelBgStyle: {
       fill: '#181512',
@@ -129,7 +129,7 @@ export function createDecoratedEdge(edge: {
       kind,
       label: edge.data?.label?.trim() ? edge.data.label.trim() : undefined,
     },
-    ariaLabel: `${EDGE_KIND_LABELS[kind]} relationship`,
+    ariaLabel: `Left-to-right relationship: ${displayLabel}`,
   }
 }
 

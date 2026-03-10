@@ -10,16 +10,34 @@ export const NODE_KIND_LABELS: Record<BoardNodeKind, string> = {
 }
 
 export const EDGE_KIND_LABELS: Record<BoardEdgeKind, string> = {
-  addresses: 'Addresses',
-  alternative: 'Alternative',
-  builds_on: 'Builds On',
-  relates: 'Relates',
+  solved_by: 'solved by',
+  continued_by: 'continued by',
+  has_option: 'has option',
+  combines_into: 'combines into',
+  followed_by: 'followed by',
+  relates_to: 'relates to',
+}
+
+export const EDGE_KIND_HELP: Record<BoardEdgeKind, string> = {
+  solved_by: 'Use when the item on the left is resolved by the item on the right.',
+  continued_by: 'Use when the item on the right picks up where the left item stopped.',
+  has_option: 'Use when one left-side item can lead to multiple right-side options.',
+  combines_into: 'Use when multiple left-side items come together in one right-side follow-up.',
+  followed_by: 'Use when the right-side item happens next after the left-side item.',
+  relates_to: 'Use when the left and right items are connected but not by a stronger relationship.',
 }
 
 export const ISSUE_STATE_OPTIONS: BoardNodeState[] = ['open', 'closed']
 export const PR_STATE_OPTIONS: BoardNodeState[] = ['draft', 'open', 'closed', 'merged']
 
-export const EDGE_KIND_OPTIONS = Object.keys(EDGE_KIND_LABELS) as BoardEdgeKind[]
+export const EDGE_KIND_OPTIONS: BoardEdgeKind[] = [
+  'solved_by',
+  'continued_by',
+  'has_option',
+  'combines_into',
+  'followed_by',
+  'relates_to',
+]
 
 export function isStateAllowedForKind(
   kind: BoardNodeKind,

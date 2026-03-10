@@ -1,11 +1,13 @@
-import { EDGE_KIND_LABELS, EDGE_KIND_OPTIONS, formatNodeState } from '../constants'
+import { EDGE_KIND_HELP, EDGE_KIND_LABELS, EDGE_KIND_OPTIONS, formatNodeState } from '../constants'
+import { getEdgeDisplayLabel } from '../lib/board'
 import type { BoardEdgeKind, BoardNodeState, FlowBoardEdge, FlowBoardNode } from '../types'
 
 interface InspectorPanelProps {
   selectedNode: FlowBoardNode | undefined
   selectedEdge: FlowBoardEdge | undefined
-  sourceLabel: string | null
-  targetLabel: string | null
+  leftLabel: string | null
+  rightLabel: string | null
+  edgeReadsLeftToRight: boolean
   onNodeTitleChange: (value: string) => void
   onNodeStateChange: (value: BoardNodeState | '') => void
   onNodeDelete: () => void
@@ -17,8 +19,9 @@ interface InspectorPanelProps {
 export function InspectorPanel({
   selectedNode,
   selectedEdge,
-  sourceLabel,
-  targetLabel,
+  leftLabel,
+  rightLabel,
+  edgeReadsLeftToRight,
   onNodeTitleChange,
   onNodeStateChange,
   onNodeDelete,
@@ -97,15 +100,20 @@ export function InspectorPanel({
     return null
   }
 
+  const edgeKind = selectedEdge.data?.kind ?? 'relates_to'
+  const relationshipLabel = getEdgeDisplayLabel(edgeKind, selectedEdge.data?.label)
+  const leftItem = leftLabel ?? selectedEdge.source
+  const rightItem = rightLabel ?? selectedEdge.target
+
   return (
     <aside className="selection-panel">
-      <p className="selection-panel__eyebrow">Connector</p>
-      <h2 className="selection-panel__heading">Relationship</h2>
+      <p className="selection-panel__eyebrow">Relationship</p>
+      <h2 className="selection-panel__heading">Left to Right</h2>
 
       <label className="field-group">
-        <span>Kind</span>
+        <span>Built-in label</span>
         <select
-          value={selectedEdge.data?.kind ?? 'relates'}
+          value={edgeKind}
           onChange={(event) => onEdgeKindChange(event.target.value as BoardEdgeKind)}
         >
           {EDGE_KIND_OPTIONS.map((kind) => (
@@ -116,30 +124,44 @@ export function InspectorPanel({
         </select>
       </label>
 
+      <p className="selection-panel__helper">
+        Read every edge from the left item to the right item. {EDGE_KIND_HELP[edgeKind]}
+      </p>
+
       <label className="field-group">
-        <span>Label</span>
+        <span>Custom label</span>
         <input
           type="text"
           value={selectedEdge.data?.label ?? ''}
           onChange={(event) => onEdgeLabelChange(event.target.value)}
-          placeholder="Optional label shown on the link"
+          placeholder="Optional override, still read left to right"
         />
       </label>
 
       <dl className="selection-panel__meta">
         <div className="selection-panel__meta-row">
-          <dt>Source</dt>
-          <dd>{sourceLabel ?? selectedEdge.source}</dd>
+          <dt>Left item</dt>
+          <dd>{leftItem}</dd>
         </div>
         <div className="selection-panel__meta-row">
-          <dt>Target</dt>
-          <dd>{targetLabel ?? selectedEdge.target}</dd>
+          <dt>Right item</dt>
+          <dd>{rightItem}</dd>
+        </div>
+        <div className="selection-panel__meta-row">
+          <dt>Reads as</dt>
+          <dd>{`${leftItem} ${relationshipLabel} ${rightItem}`}</dd>
         </div>
       </dl>
 
+      {!edgeReadsLeftToRight ? (
+        <p className="selection-panel__warning">
+          Move the left item before the right item so this relationship still reads left to right.
+        </p>
+      ) : null}
+
       <div className="selection-panel__actions">
         <button className="hud-button hud-button--danger" type="button" onClick={onEdgeDelete}>
-          Delete connector
+          Delete relationship
         </button>
       </div>
     </aside>

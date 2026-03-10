@@ -10,10 +10,15 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 1. Run `npm install`
 2. Start the editor with `npm run dev`
 3. Add issue and PR cards from GitHub URLs
-4. Draw relationships between cards
+4. Draw relationships from left to right: the left card is the earlier problem/origin item, and the right card is the later result/solution/follow-up item
 5. Export `board.json`
 6. Replace `public/board.json` with the exported file
 7. Rebuild and publish the static site
+
+## Relationships
+- Built-in relationship labels read left to right in plain English: `solved by`, `continued by`, `has option`, `combines into`, `followed by`, and `relates to`
+- Common examples: Issue -> PR = `solved by`, PR -> PR = `continued by`, one Issue -> multiple PRs = `has option`, multiple Issues -> one PR = `combines into`
+- In the editor, connect cards from the left item to the right item and keep the result/follow-up card physically to the right
 
 ## Scripts
 - `npm run dev`

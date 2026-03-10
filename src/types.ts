@@ -4,7 +4,13 @@ export type AppMode = 'viewer' | 'editor'
 
 export type BoardNodeKind = 'issue' | 'pr'
 export type BoardNodeState = 'open' | 'closed' | 'merged' | 'draft'
-export type BoardEdgeKind = 'addresses' | 'alternative' | 'builds_on' | 'relates'
+export type BoardEdgeKind =
+  | 'solved_by'
+  | 'continued_by'
+  | 'has_option'
+  | 'combines_into'
+  | 'followed_by'
+  | 'relates_to'
 
 export interface BoardMeta {
   title: string

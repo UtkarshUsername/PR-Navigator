@@ -121,13 +121,6 @@ export function createDecoratedEdge(edge: {
       fontWeight: 600,
       letterSpacing: '0.03em',
     },
-    labelBgStyle: {
-      fill: '#181512',
-      stroke: '#3f3a33',
-      strokeWidth: 1,
-    },
-    labelBgPadding: [7, 4],
-    labelBgBorderRadius: 10,
     data: {
       kind,
       label: edge.data?.label?.trim() ? edge.data.label.trim() : undefined,

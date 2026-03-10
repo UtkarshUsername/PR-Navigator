@@ -550,9 +550,7 @@ function App() {
           </div>
         ) : null}
 
-        {isEditor ? (
-          <RepoSelector selectedRepo={selectedRepo} onRepoChange={setSelectedRepo} />
-        ) : null}
+        <RepoSelector selectedRepo={selectedRepo} onRepoChange={setSelectedRepo} />
 
         {!isEditor ? (
           <aside className="viewer-legend" aria-label="Legend">

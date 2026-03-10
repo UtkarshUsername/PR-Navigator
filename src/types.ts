@@ -32,6 +32,7 @@ export interface BoardNode {
   number: number
   title: string
   state?: BoardNodeState
+  isOwnedByMe?: boolean
   position: {
     x: number
     y: number
@@ -53,6 +54,7 @@ export interface NavigatorNodeData extends Record<string, unknown> {
   number: number
   title: string
   state?: BoardNodeState
+  isOwnedByMe?: boolean
   mode: AppMode
 }
 

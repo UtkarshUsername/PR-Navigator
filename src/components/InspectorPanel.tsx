@@ -10,6 +10,7 @@ interface InspectorPanelProps {
   edgeReadsLeftToRight: boolean
   onNodeTitleChange: (value: string) => void
   onNodeStateChange: (value: BoardNodeState | '') => void
+  onNodeOwnedByMeChange: (value: boolean) => void
   onNodeDelete: () => void
   onEdgeKindChange: (value: BoardEdgeKind) => void
   onEdgeLabelChange: (value: string) => void
@@ -24,6 +25,7 @@ export function InspectorPanel({
   edgeReadsLeftToRight,
   onNodeTitleChange,
   onNodeStateChange,
+  onNodeOwnedByMeChange,
   onNodeDelete,
   onEdgeKindChange,
   onEdgeLabelChange,
@@ -68,6 +70,15 @@ export function InspectorPanel({
           </select>
         </label>
 
+        <label className="toggle-field">
+          <input
+            type="checkbox"
+            checked={selectedNode.data.isOwnedByMe ?? false}
+            onChange={(event) => onNodeOwnedByMeChange(event.target.checked)}
+          />
+          <span>By me</span>
+        </label>
+
         <dl className="selection-panel__meta">
           <div className="selection-panel__meta-row">
             <dt>Repository</dt>
@@ -76,6 +87,10 @@ export function InspectorPanel({
           <div className="selection-panel__meta-row">
             <dt>State</dt>
             <dd>{formatNodeState(selectedNode.data.state)}</dd>
+          </div>
+          <div className="selection-panel__meta-row">
+            <dt>Authorship</dt>
+            <dd>{selectedNode.data.isOwnedByMe ? 'By me' : 'Not by me'}</dd>
           </div>
         </dl>
 

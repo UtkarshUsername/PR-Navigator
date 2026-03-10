@@ -6,12 +6,14 @@ interface AddCardModalProps {
   composerNumber: string
   composerTitle: string
   composerState: BoardNodeState | ''
+  composerIsOwnedByMe: boolean
   composerError: string | null
   selectedRepo: string
   onKindChange: (kind: BoardNodeKind) => void
   onNumberChange: (value: string) => void
   onTitleChange: (value: string) => void
   onStateChange: (value: BoardNodeState | '') => void
+  onIsOwnedByMeChange: (value: boolean) => void
   onSubmit: () => void
   onClose: () => void
 }
@@ -21,12 +23,14 @@ export function AddCardModal({
   composerNumber,
   composerTitle,
   composerState,
+  composerIsOwnedByMe,
   composerError,
   selectedRepo,
   onKindChange,
   onNumberChange,
   onTitleChange,
   onStateChange,
+  onIsOwnedByMeChange,
   onSubmit,
   onClose,
 }: AddCardModalProps) {
@@ -94,6 +98,15 @@ export function AddCardModal({
                 </option>
               ))}
             </select>
+          </label>
+
+          <label className="toggle-field">
+            <input
+              type="checkbox"
+              checked={composerIsOwnedByMe}
+              onChange={(e) => onIsOwnedByMeChange(e.target.checked)}
+            />
+            <span>By me</span>
           </label>
 
           {composerError ? <p className="composer-sheet__error">{composerError}</p> : null}

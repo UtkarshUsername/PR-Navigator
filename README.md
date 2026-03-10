@@ -20,6 +20,10 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 - Common examples: Issue -> PR = `solved by`, PR -> PR = `continued by`, one Issue -> multiple PRs = `has option`, multiple Issues -> one PR = `combines into`
 - In the editor, connect cards from the left item to the right item and keep the result/follow-up card physically to the right
 
+## Cards
+- Issues and PRs can be marked `By me` in the add-card form or the inspector
+- The exported board schema stores that flag as `isOwnedByMe`
+
 ## Scripts
 - `npm run dev`
 - `npm run build`

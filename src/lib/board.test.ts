@@ -18,6 +18,7 @@ describe('board schema', () => {
           number: 1,
           title: 'Track navigation',
           state: 'open',
+          isOwnedByMe: true,
           position: { x: 120, y: 180 },
         },
       ],
@@ -78,6 +79,34 @@ describe('board schema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error).toContain('not valid for issue node')
+    }
+  })
+
+  it('rejects non-boolean ownership markers', () => {
+    const result = safeParseBoardData({
+      version: 1,
+      meta: {
+        title: 'Broken ownership',
+        updatedAt: '2026-03-08T00:00:00.000Z',
+      },
+      nodes: [
+        {
+          id: 'node-1',
+          kind: 'issue',
+          githubUrl: 'https://github.com/octocat/Hello-World/issues/1',
+          repoSlug: 'octocat/Hello-World',
+          number: 1,
+          title: 'Ownership mismatch',
+          isOwnedByMe: 'yes',
+          position: { x: 0, y: 0 },
+        },
+      ],
+      edges: [],
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toContain('expected boolean')
     }
   })
 

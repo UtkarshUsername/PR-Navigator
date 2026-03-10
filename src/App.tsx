@@ -67,6 +67,7 @@ function App() {
   const [composerNumber, setComposerNumber] = useState('')
   const [composerTitle, setComposerTitle] = useState('')
   const [composerState, setComposerState] = useState<BoardNodeState | ''>('')
+  const [composerIsOwnedByMe, setComposerIsOwnedByMe] = useState(false)
   const [composerError, setComposerError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedRepo, setSelectedRepo] = useState('pingdotgg/t3code')
@@ -243,6 +244,7 @@ function App() {
       setComposerNumber('')
       setComposerTitle('')
       setComposerState('')
+      setComposerIsOwnedByMe(false)
       setComposerError(null)
       setLoadError(null)
     })
@@ -318,6 +320,7 @@ function App() {
         number: num,
         title: composerTitle.trim(),
         state: composerState || undefined,
+        isOwnedByMe: composerIsOwnedByMe || undefined,
         mode: APP_MODE,
       },
     }
@@ -329,6 +332,7 @@ function App() {
     setComposerNumber('')
     setComposerTitle('')
     setComposerState('')
+    setComposerIsOwnedByMe(false)
     setComposerError(null)
     setIsDirty(true)
   }
@@ -439,6 +443,7 @@ function App() {
   function openAddModal(kind: BoardNodeKind = 'issue') {
     setComposerKind(kind)
     setComposerState(kind === 'issue' ? 'open' : 'draft')
+    setComposerIsOwnedByMe(false)
     setComposerNumber('')
     setComposerTitle('')
     setComposerError(null)
@@ -451,6 +456,7 @@ function App() {
     setComposerNumber('')
     setComposerTitle('')
     setComposerState('')
+    setComposerIsOwnedByMe(false)
     setComposerError(null)
   }
 
@@ -562,6 +568,15 @@ function App() {
                 },
               }))
             }
+            onNodeOwnedByMeChange={(value) =>
+              updateSelectedNode((node) => ({
+                ...node,
+                data: {
+                  ...node.data,
+                  isOwnedByMe: value || undefined,
+                },
+              }))
+            }
             onNodeDelete={deleteSelectedNode}
             onEdgeKindChange={(value) =>
               updateSelectedEdge((edge) =>
@@ -599,6 +614,7 @@ function App() {
             composerNumber={composerNumber}
             composerTitle={composerTitle}
             composerState={composerState}
+            composerIsOwnedByMe={composerIsOwnedByMe}
             composerError={composerError}
             selectedRepo={selectedRepo}
             onKindChange={(kind) => {
@@ -613,6 +629,7 @@ function App() {
             }}
             onTitleChange={setComposerTitle}
             onStateChange={setComposerState}
+            onIsOwnedByMeChange={setComposerIsOwnedByMe}
             onSubmit={handleCreateNode}
             onClose={closeAddModal}
           />

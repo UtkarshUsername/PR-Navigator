@@ -2,8 +2,23 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-10T03:45:07.060Z"
+    "updatedAt": "2026-03-10T03:49:21.463Z"
   },
-  "nodes": [],
+  "nodes": [
+    {
+      "id": "node-exte2ddo",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/4",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 4,
+      "title": "4",
+      "state": "open",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -233.86,
+        "y": -130.31
+      }
+    }
+  ],
   "edges": []
 }

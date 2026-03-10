@@ -37,6 +37,7 @@ const boardNodeSchema = z.object({
   number: z.number().int().positive(),
   title: z.string(),
   state: nodeStateSchema.optional(),
+  isOwnedByMe: z.boolean().optional(),
   position: positionSchema,
 })
 

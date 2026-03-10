@@ -29,6 +29,7 @@ import { RepoSelector } from './components/RepoSelector'
 import { DEFAULT_BOARD_TITLE, LOCAL_DRAFT_STORAGE_KEY } from './constants'
 import { createBoardSnapshot, createEmptyBoard, serializeBoardData } from './lib/board'
 import { boardToFlowEdges, boardToFlowNodes, createBoardFromFlow, createDecoratedEdge } from './lib/flow'
+import { getViewerRedirectPath } from './lib/routing'
 import {
   clearDraftFromStorage,
   fetchBoardData,
@@ -56,6 +57,7 @@ const nodeTypes = {
 
 function App() {
   const isEditor = APP_MODE === 'editor'
+  const viewerRedirectPath = getViewerRedirectPath(window.location.pathname, APP_MODE)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const reactFlowRef = useRef<ReactFlowInstance<FlowBoardNode, FlowBoardEdge> | null>(null)
@@ -150,6 +152,19 @@ function App() {
   }, [isEditor])
 
   useEffect(() => {
+    if (!viewerRedirectPath) {
+      return
+    }
+
+    const { search, hash } = window.location
+    window.location.replace(`${viewerRedirectPath}${search}${hash}`)
+  }, [viewerRedirectPath])
+
+  useEffect(() => {
+    if (viewerRedirectPath) {
+      return
+    }
+
     let cancelled = false
 
     async function hydrateBoard() {
@@ -202,7 +217,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [isEditor])
+  }, [isEditor, viewerRedirectPath])
 
   useEffect(() => {
     if (!hasHydrated || !isEditor || !isDirty) {
@@ -234,6 +249,10 @@ function App() {
       setSelection(null)
     }
   }, [edges, nodes, selection])
+
+  if (viewerRedirectPath) {
+    return null
+  }
 
   function focusBoard(duration = 320) {
     reactFlowRef.current?.fitView({

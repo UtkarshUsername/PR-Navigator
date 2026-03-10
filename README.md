@@ -5,6 +5,7 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 ## Modes
 - `npm run dev` starts the app in `editor` mode from `.env.development`
 - `npm run build` builds the app in `viewer` mode from `.env.production`
+- In the viewer build, `/` redirects to `/t3code-utkarsh`
 
 ## Editing workflow
 1. Run `npm install`
@@ -33,3 +34,4 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 
 ## Deployment
 The app uses `base: './'`, so it works on GitHub Pages project sites as well as root-hosted static deployments.
+Cloudflare Pages picks up `public/_redirects`, which keeps the viewer canonically on `/t3code-utkarsh`.

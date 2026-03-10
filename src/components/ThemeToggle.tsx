@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import type { ResolvedTheme, ThemePreference } from '../types'
 
 interface ThemeToggleProps {
@@ -10,7 +12,7 @@ const THEME_OPTIONS: Array<{
   value: ThemePreference
   label: string
   ariaLabel: string
-  icon: React.ReactNode
+  icon: ReactNode
 }> = [
   {
     value: 'system',

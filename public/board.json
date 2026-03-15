@@ -2,23 +2,9 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-10T19:05:36.591Z"
+    "updatedAt": "2026-03-15T04:35:30.817Z"
   },
   "nodes": [
-    {
-      "id": "node-issue-284",
-      "kind": "issue",
-      "githubUrl": "https://github.com/pingdotgg/t3code/issues/284",
-      "repoSlug": "pingdotgg/t3code",
-      "number": 284,
-      "title": "Reset codex overrides button pushed out of card with long Codex binary path",
-      "state": "closed",
-      "isOwnedByMe": true,
-      "position": {
-        "x": -505.16,
-        "y": -114.01
-      }
-    },
     {
       "id": "node-issue-255",
       "kind": "issue",
@@ -62,20 +48,6 @@
       }
     },
     {
-      "id": "node-0tf54gn4",
-      "kind": "pr",
-      "githubUrl": "https://github.com/pingdotgg/t3code/pull/707",
-      "repoSlug": "pingdotgg/t3code",
-      "number": 707,
-      "title": "fix: prevent Codex overrides footer overflow with long binary paths",
-      "state": "merged",
-      "isOwnedByMe": true,
-      "position": {
-        "x": -184.15,
-        "y": -224.64
-      }
-    },
-    {
       "id": "node-gxq6lk56",
       "kind": "pr",
       "githubUrl": "https://github.com/pingdotgg/t3code/pull/320",
@@ -105,12 +77,6 @@
   ],
   "edges": [
     {
-      "id": "edge-13pkyb3l",
-      "source": "node-issue-284",
-      "target": "node-0tf54gn4",
-      "kind": "solved_by"
-    },
-    {
       "id": "edge-zlrpi727",
       "source": "node-issue-236",
       "target": "node-gxq6lk56",
@@ -118,7 +84,43 @@
     }
   ],
   "archived": {
-    "nodes": [],
-    "edges": []
+    "nodes": [
+      {
+        "id": "node-0tf54gn4",
+        "kind": "pr",
+        "githubUrl": "https://github.com/pingdotgg/t3code/pull/707",
+        "repoSlug": "pingdotgg/t3code",
+        "number": 707,
+        "title": "fix: prevent Codex overrides footer overflow with long binary paths",
+        "state": "merged",
+        "isOwnedByMe": true,
+        "position": {
+          "x": -184.15,
+          "y": -224.64
+        }
+      },
+      {
+        "id": "node-issue-284",
+        "kind": "issue",
+        "githubUrl": "https://github.com/pingdotgg/t3code/issues/284",
+        "repoSlug": "pingdotgg/t3code",
+        "number": 284,
+        "title": "Reset codex overrides button pushed out of card with long Codex binary path",
+        "state": "closed",
+        "isOwnedByMe": true,
+        "position": {
+          "x": -505.16,
+          "y": -114.01
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-1043vjcu",
+        "source": "node-issue-284",
+        "target": "node-0tf54gn4",
+        "kind": "relates_to"
+      }
+    ]
   }
 }

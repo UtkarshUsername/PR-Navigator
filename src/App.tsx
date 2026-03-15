@@ -562,7 +562,7 @@ function App() {
     setSelection(null)
     setSelectedNodeIds([])
     setIsDirty(true)
-    showToast(getMoveToastMessage(boardView, transferResult.movedNodeCount, transferResult.movedEdgeCount, transferResult.droppedEdgeCount))
+    showToast(getMoveToastMessage(boardView, transferResult.movedNodeCount, transferResult.movedEdgeCount))
   }
 
   function updateSelectedNode(updater: (node: FlowBoardNode) => FlowBoardNode) {
@@ -883,20 +883,24 @@ function isMutatingEdgeChange(change: EdgeChange<FlowBoardEdge>): boolean {
 
 function getMoveSelectionLabel(isArchivedView: boolean, selectedNodeCount: number): string {
   if (selectedNodeCount <= 0) {
-    return isArchivedView ? 'Send to current' : 'Send to archived'
+    return isArchivedView ? 'Send connected cards to current' : 'Send connected cards to archived'
   }
 
-  const cardLabel = selectedNodeCount === 1 ? 'card' : 'cards'
+  if (selectedNodeCount === 1) {
+    return isArchivedView
+      ? 'Send card and connected cards to current'
+      : 'Send card and connected cards to archived'
+  }
+
   return isArchivedView
-    ? `Send ${selectedNodeCount} ${cardLabel} to current`
-    : `Send ${selectedNodeCount} ${cardLabel} to archived`
+    ? 'Send selection and connected cards to current'
+    : 'Send selection and connected cards to archived'
 }
 
 function getMoveToastMessage(
   boardView: BoardView,
   movedNodeCount: number,
   movedEdgeCount: number,
-  droppedEdgeCount: number,
 ): string {
   const action = boardView === 'archived' ? 'Moved' : 'Archived'
   const cardLabel = movedNodeCount === 1 ? 'card' : 'cards'
@@ -906,12 +910,6 @@ function getMoveToastMessage(
     message += ` and ${movedEdgeCount} ${
       movedEdgeCount === 1 ? 'relationship' : 'relationships'
     }`
-  }
-
-  if (droppedEdgeCount > 0) {
-    message += `. ${droppedEdgeCount} ${
-      droppedEdgeCount === 1 ? 'connection was removed' : 'connections were removed'
-    } outside the moved selection`
   }
 
   return message

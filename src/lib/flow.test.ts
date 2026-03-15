@@ -111,38 +111,36 @@ describe('edge label normalization', () => {
 })
 
 describe('moveSelectedFlowNodesToBoard', () => {
-  it('moves selected cards and keeps only relationships fully inside the moved selection', () => {
+  it('moves the full connected graph for the selected cards', () => {
     const result = moveSelectedFlowNodesToBoard({
-      selectedNodeIds: ['node-1', 'node-2'],
-      sourceNodes: [
-        boardToFlowNodes(
-          {
-            ...board,
-            nodes: [
-              board.nodes[0],
-              {
-                id: 'node-2',
-                kind: 'pr',
-                githubUrl: 'https://github.com/octocat/Hello-World/pull/43',
-                repoSlug: 'octocat/Hello-World',
-                number: 43,
-                title: 'Archive me too',
-                position: { x: 260, y: 0 },
-              },
-              {
-                id: 'node-3',
-                kind: 'issue',
-                githubUrl: 'https://github.com/octocat/Hello-World/issues/44',
-                repoSlug: 'octocat/Hello-World',
-                number: 44,
-                title: 'Stay on the current board',
-                position: { x: 520, y: 0 },
-              },
-            ],
-          },
-          'editor',
-        ),
-      ].flat(),
+      selectedNodeIds: ['node-1'],
+      sourceNodes: boardToFlowNodes(
+        {
+          ...board,
+          nodes: [
+            board.nodes[0],
+            {
+              id: 'node-2',
+              kind: 'pr',
+              githubUrl: 'https://github.com/octocat/Hello-World/pull/43',
+              repoSlug: 'octocat/Hello-World',
+              number: 43,
+              title: 'Archive me too',
+              position: { x: 260, y: 0 },
+            },
+            {
+              id: 'node-3',
+              kind: 'issue',
+              githubUrl: 'https://github.com/octocat/Hello-World/issues/44',
+              repoSlug: 'octocat/Hello-World',
+              number: 44,
+              title: 'Archive this too',
+              position: { x: 520, y: 0 },
+            },
+          ],
+        },
+        'editor',
+      ),
       sourceEdges: boardToFlowEdges({
         ...board,
         nodes: [
@@ -162,7 +160,7 @@ describe('moveSelectedFlowNodesToBoard', () => {
             githubUrl: 'https://github.com/octocat/Hello-World/issues/44',
             repoSlug: 'octocat/Hello-World',
             number: 44,
-            title: 'Stay on the current board',
+            title: 'Archive this too',
             position: { x: 520, y: 0 },
           },
         ],
@@ -185,12 +183,11 @@ describe('moveSelectedFlowNodesToBoard', () => {
       targetEdges: [],
     })
 
-    expect(result.sourceNodes.map((node) => node.id)).toEqual(['node-3'])
+    expect(result.sourceNodes).toHaveLength(0)
     expect(result.sourceEdges).toHaveLength(0)
-    expect(result.targetNodes.map((node) => node.id)).toEqual(['node-1', 'node-2'])
-    expect(result.targetEdges.map((edge) => edge.id)).toEqual(['edge-1'])
-    expect(result.movedNodeCount).toBe(2)
-    expect(result.movedEdgeCount).toBe(1)
-    expect(result.droppedEdgeCount).toBe(1)
+    expect(result.targetNodes.map((node) => node.id)).toEqual(['node-1', 'node-2', 'node-3'])
+    expect(result.targetEdges.map((edge) => edge.id)).toEqual(['edge-1', 'edge-2'])
+    expect(result.movedNodeCount).toBe(3)
+    expect(result.movedEdgeCount).toBe(2)
   })
 })

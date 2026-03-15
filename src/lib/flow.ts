@@ -111,26 +111,50 @@ export function moveSelectedFlowNodesToBoard(input: {
   targetEdges: FlowBoardEdge[]
   movedNodeCount: number
   movedEdgeCount: number
-  droppedEdgeCount: number
 } {
-  const selectedIds = new Set(input.selectedNodeIds)
-  const movedNodes = input.sourceNodes.filter((node) => selectedIds.has(node.id))
-  const selectedEdgeTouches = input.sourceEdges.filter(
-    (edge) => selectedIds.has(edge.source) || selectedIds.has(edge.target),
+  const sourceNodeIds = new Set(input.sourceNodes.map((node) => node.id))
+  const connectedNodeIds = new Set(
+    input.selectedNodeIds.filter((selectedNodeId) => sourceNodeIds.has(selectedNodeId)),
   )
-  const movedEdges = selectedEdgeTouches.filter(
-    (edge) => selectedIds.has(edge.source) && selectedIds.has(edge.target),
+  const frontier = [...connectedNodeIds]
+
+  while (frontier.length > 0) {
+    const currentNodeId = frontier.pop()
+
+    if (!currentNodeId) {
+      continue
+    }
+
+    for (const edge of input.sourceEdges) {
+      if (edge.source !== currentNodeId && edge.target !== currentNodeId) {
+        continue
+      }
+
+      if (!connectedNodeIds.has(edge.source) && sourceNodeIds.has(edge.source)) {
+        connectedNodeIds.add(edge.source)
+        frontier.push(edge.source)
+      }
+
+      if (!connectedNodeIds.has(edge.target) && sourceNodeIds.has(edge.target)) {
+        connectedNodeIds.add(edge.target)
+        frontier.push(edge.target)
+      }
+    }
+  }
+
+  const movedNodes = input.sourceNodes.filter((node) => connectedNodeIds.has(node.id))
+  const movedEdges = input.sourceEdges.filter(
+    (edge) => connectedNodeIds.has(edge.source) && connectedNodeIds.has(edge.target),
   )
   const movedEdgeIds = new Set(movedEdges.map((edge) => edge.id))
 
   return {
-    sourceNodes: input.sourceNodes.filter((node) => !selectedIds.has(node.id)),
-    sourceEdges: input.sourceEdges.filter((edge) => !selectedEdgeTouches.includes(edge)),
+    sourceNodes: input.sourceNodes.filter((node) => !connectedNodeIds.has(node.id)),
+    sourceEdges: input.sourceEdges.filter((edge) => !movedEdgeIds.has(edge.id)),
     targetNodes: mergeById(input.targetNodes, movedNodes),
     targetEdges: mergeById(input.targetEdges, movedEdges),
     movedNodeCount: movedNodes.length,
     movedEdgeCount: movedEdges.length,
-    droppedEdgeCount: selectedEdgeTouches.length - movedEdgeIds.size,
   }
 }
 

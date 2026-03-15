@@ -41,7 +41,6 @@ export function boardNodesToFlowNodes(nodes: BoardNode[], mode: AppMode): FlowBo
       title: node.title,
       state: node.state,
       isOwnedByMe: node.isOwnedByMe,
-      closingIssueIds: node.closingIssueIds,
       mode,
     } satisfies NavigatorNodeData,
   }))
@@ -65,7 +64,6 @@ export function flowToBoardNodes(nodes: FlowBoardNode[]): BoardNode[] {
     title: node.data.title,
     state: node.data.state,
     isOwnedByMe: node.data.isOwnedByMe,
-    closingIssueIds: node.data.closingIssueIds,
     position: {
       x: roundCoordinate(node.position.x),
       y: roundCoordinate(node.position.y),

@@ -15,95 +15,22 @@ interface FetchAuthoredGitHubItemsOptions {
   fetchImpl?: typeof fetch
 }
 
-interface GitHubGraphQlResponse {
-  data?: {
-    issues: {
-      nodes: Array<GitHubGraphQlIssueNode | null>
-    }
-    pullRequests: {
-      nodes: Array<GitHubGraphQlPullRequestNode | null>
-    }
-  }
-  errors?: Array<{ message?: string }>
-}
-
-interface GitHubGraphQlRepository {
-  nameWithOwner: string
-}
-
-interface GitHubGraphQlIssueNode {
+interface GitHubSearchResultItem {
   number: number
   title: string
-  url: string
-  state: 'OPEN' | 'CLOSED'
-  updatedAt: string
-  repository: GitHubGraphQlRepository
+  html_url: string
+  state: 'open' | 'closed'
+  updated_at: string
 }
 
-interface GitHubGraphQlPullRequestNode {
-  number: number
-  title: string
-  url: string
-  state: 'OPEN' | 'CLOSED' | 'MERGED'
-  updatedAt: string
-  isDraft: boolean
-  mergedAt: string | null
-  repository: GitHubGraphQlRepository
-  closingIssuesReferences: {
-    nodes: Array<{
-      number: number
-      repository: GitHubGraphQlRepository
-    }>
-  }
+interface GitHubSearchResponse {
+  items: GitHubSearchResultItem[]
 }
 
 const GITHUB_HOSTNAMES = new Set(['github.com', 'www.github.com'])
 const GITHUB_API_BASE_URL = 'https://api.github.com'
-const GITHUB_GRAPHQL_URL = `${GITHUB_API_BASE_URL}/graphql`
 const DEFAULT_FETCH_LIMIT = 24
 const MAX_ITEMS_PER_KIND = 12
-const AUTHORED_ITEMS_GRAPHQL_QUERY = `
-  query AuthoredItems($issueQuery: String!, $prQuery: String!, $first: Int!) {
-    issues: search(query: $issueQuery, type: ISSUE, first: $first) {
-      nodes {
-        ... on Issue {
-          number
-          title
-          url
-          state
-          updatedAt
-          repository {
-            nameWithOwner
-          }
-        }
-      }
-    }
-    pullRequests: search(query: $prQuery, type: ISSUE, first: $first) {
-      nodes {
-        ... on PullRequest {
-          number
-          title
-          url
-          state
-          updatedAt
-          isDraft
-          mergedAt
-          repository {
-            nameWithOwner
-          }
-          closingIssuesReferences(first: 20) {
-            nodes {
-              number
-              repository {
-                nameWithOwner
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`
 
 export function createGitHubResourceId(
   kind: BoardNodeKind,
@@ -177,31 +104,26 @@ export async function fetchAuthoredGitHubItems({
     return []
   }
 
-  if (!token) {
-    throw new Error('Set VITE_GITHUB_TOKEN to load authored items from GitHub GraphQL.')
-  }
-
   const perKindLimit = Math.min(Math.max(Math.ceil(limit / 2), 1), MAX_ITEMS_PER_KIND)
-  const response = await fetchGitHubGraphQl<GitHubGraphQlResponse>({
-    token,
-    fetchImpl,
-    query: AUTHORED_ITEMS_GRAPHQL_QUERY,
-    variables: {
-      issueQuery: `repo:${trimmedRepoSlug} author:${trimmedUsername} is:issue sort:updated-desc`,
-      prQuery: `repo:${trimmedRepoSlug} author:${trimmedUsername} is:pr sort:updated-desc`,
-      first: perKindLimit,
-    },
-  })
-
-  if (!response.data) {
-    throw new Error('GitHub GraphQL returned no data for the authored-items sidebar.')
-  }
+  const headers = createGitHubApiHeaders(token)
+  const issueQuery = encodeURIComponent(`repo:${trimmedRepoSlug} author:${trimmedUsername} is:issue`)
+  const prQuery = encodeURIComponent(`repo:${trimmedRepoSlug} author:${trimmedUsername} is:pr`)
 
   const items = [
-    ...response.data.issues.nodes.filter(isPresent).map((item) => mapIssueNodeToAuthoredItem(item)),
-    ...response.data.pullRequests.nodes.filter(isPresent).map((item) =>
-      mapPullRequestNodeToAuthoredItem(item),
-    ),
+    ...(
+      await fetchGitHubApiJson<GitHubSearchResponse>(
+        `/search/issues?q=${issueQuery}&sort=updated&order=desc&per_page=${perKindLimit}`,
+        fetchImpl,
+        headers,
+      )
+    ).items.map((item) => mapSearchResultToAuthoredItem(trimmedRepoSlug, 'issue', item)),
+    ...(
+      await fetchGitHubApiJson<GitHubSearchResponse>(
+        `/search/issues?q=${prQuery}&sort=updated&order=desc&per_page=${perKindLimit}`,
+        fetchImpl,
+        headers,
+      )
+    ).items.map((item) => mapSearchResultToAuthoredItem(trimmedRepoSlug, 'pr', item)),
   ]
 
   return items
@@ -216,39 +138,20 @@ function createGitHubApiHeaders(token: string | undefined): HeadersInit {
   }
 }
 
-async function fetchGitHubGraphQl<T>(input: {
-  token: string
-  fetchImpl: typeof fetch
-  query: string
-  variables: Record<string, string | number>
-}): Promise<T> {
-  const response = await input.fetchImpl(GITHUB_GRAPHQL_URL, {
-    method: 'POST',
-    headers: {
-      ...createGitHubApiHeaders(input.token),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      query: input.query,
-      variables: input.variables,
-    }),
+async function fetchGitHubApiJson<T>(
+  path: string,
+  fetchImpl: typeof fetch,
+  headers: HeadersInit,
+): Promise<T> {
+  const response = await fetchImpl(`${GITHUB_API_BASE_URL}${path}`, {
+    headers,
   })
 
   if (!response.ok) {
     throw new Error(await getGitHubApiErrorMessage(response))
   }
 
-  const data = (await response.json()) as GitHubGraphQlResponse
-
-  if (data.errors?.length) {
-    const message = data.errors.find((error) => error.message)?.message
-
-    throw new Error(
-      message ? `GitHub GraphQL request failed: ${message}` : 'GitHub GraphQL request failed.',
-    )
-  }
-
-  return data as T
+  return (await response.json()) as T
 }
 
 async function getGitHubApiErrorMessage(response: Response): Promise<string> {
@@ -257,7 +160,7 @@ async function getGitHubApiErrorMessage(response: Response): Promise<string> {
   }
 
   if (response.status === 403) {
-    return 'GitHub rate limit reached or the token lacks access for GitHub GraphQL.'
+    return 'GitHub rate limit reached. Add VITE_GITHUB_TOKEN to raise the limit.'
   }
 
   if (response.status === 404) {
@@ -277,53 +180,27 @@ async function getGitHubApiErrorMessage(response: Response): Promise<string> {
   return `GitHub request failed (${response.status}).`
 }
 
-function mapIssueNodeToAuthoredItem(item: GitHubGraphQlIssueNode): GitHubAuthoredItem {
+function mapSearchResultToAuthoredItem(
+  repoSlug: string,
+  kind: BoardNodeKind,
+  item: GitHubSearchResultItem,
+): GitHubAuthoredItem {
   return {
-    id: createGitHubResourceId('issue', item.repository.nameWithOwner, item.number),
-    kind: 'issue',
-    githubUrl: item.url,
-    repoSlug: item.repository.nameWithOwner,
+    id: createGitHubResourceId(kind, repoSlug, item.number),
+    kind,
+    githubUrl: item.html_url,
+    repoSlug,
     number: item.number,
     title: item.title,
-    state: getIssueState(item.state),
-    updatedAt: item.updatedAt,
+    state: kind === 'pr' ? getPullRequestState(item.state) : getIssueState(item.state),
+    updatedAt: item.updated_at,
   }
 }
 
-function mapPullRequestNodeToAuthoredItem(item: GitHubGraphQlPullRequestNode): GitHubAuthoredItem {
-  const closingIssueIds = item.closingIssuesReferences.nodes.map((issue) =>
-    createGitHubResourceId('issue', issue.repository.nameWithOwner, issue.number),
-  )
-
-  return {
-    id: createGitHubResourceId('pr', item.repository.nameWithOwner, item.number),
-    kind: 'pr',
-    githubUrl: item.url,
-    repoSlug: item.repository.nameWithOwner,
-    number: item.number,
-    title: item.title,
-    state: getPullRequestState(item),
-    updatedAt: item.updatedAt,
-    closingIssueIds: closingIssueIds.length > 0 ? closingIssueIds : undefined,
-  }
+function getPullRequestState(state: GitHubSearchResultItem['state']): BoardNodeState {
+  return state === 'open' ? 'open' : 'closed'
 }
 
-function getPullRequestState(item: Pick<GitHubGraphQlPullRequestNode, 'mergedAt' | 'isDraft' | 'state'>): BoardNodeState {
-  if (item.mergedAt) {
-    return 'merged'
-  }
-
-  if (item.isDraft) {
-    return 'draft'
-  }
-
-  return item.state === 'OPEN' ? 'open' : 'closed'
-}
-
-function getIssueState(state: GitHubGraphQlIssueNode['state']): BoardNodeState {
-  return state === 'OPEN' ? 'open' : 'closed'
-}
-
-function isPresent<T>(value: T | null): value is T {
-  return value !== null
+function getIssueState(state: GitHubSearchResultItem['state']): BoardNodeState {
+  return state === 'open' ? 'open' : 'closed'
 }

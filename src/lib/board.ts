@@ -39,7 +39,6 @@ const boardNodeSchema = z.object({
   title: z.string(),
   state: nodeStateSchema.optional(),
   isOwnedByMe: z.boolean().optional(),
-  closingIssueIds: z.array(z.string().min(1)).optional(),
   position: positionSchema,
 })
 

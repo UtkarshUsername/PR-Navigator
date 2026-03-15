@@ -42,7 +42,6 @@ export interface BoardNode {
   title: string
   state?: BoardNodeState
   isOwnedByMe?: boolean
-  closingIssueIds?: string[]
   position: {
     x: number
     y: number
@@ -65,7 +64,6 @@ export interface NavigatorNodeData extends Record<string, unknown> {
   title: string
   state?: BoardNodeState
   isOwnedByMe?: boolean
-  closingIssueIds?: string[]
   mode: AppMode
 }
 
@@ -83,7 +81,6 @@ export interface GitHubAuthoredItem {
   title: string
   state: BoardNodeState
   updatedAt: string
-  closingIssueIds?: string[]
 }
 
 export type FlowBoardNode = Node<NavigatorNodeData, 'navigator'>

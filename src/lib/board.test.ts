@@ -3,6 +3,26 @@ import { describe, expect, it } from 'vitest'
 import { createBoardSnapshot, safeParseBoardData } from './board'
 
 describe('board schema', () => {
+  it('fills in an empty archived board for legacy payloads', () => {
+    const result = safeParseBoardData({
+      version: 1,
+      meta: {
+        title: 'Legacy board',
+        updatedAt: '2026-03-08T00:00:00.000Z',
+      },
+      nodes: [],
+      edges: [],
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.archived).toEqual({
+        nodes: [],
+        edges: [],
+      })
+    }
+  })
+
   it('accepts a valid board payload', () => {
     const board = createBoardSnapshot({
       meta: {
@@ -28,6 +48,34 @@ describe('board schema', () => {
     const result = safeParseBoardData(board)
 
     expect(result.success).toBe(true)
+  })
+
+  it('rejects archived edges that point outside the archived board', () => {
+    const result = safeParseBoardData({
+      version: 1,
+      meta: {
+        title: 'Archived mismatch',
+        updatedAt: '2026-03-08T00:00:00.000Z',
+      },
+      nodes: [],
+      edges: [],
+      archived: {
+        nodes: [],
+        edges: [
+          {
+            id: 'edge-1',
+            source: 'missing-a',
+            target: 'missing-b',
+            kind: 'relates_to',
+          },
+        ],
+      },
+    })
+
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error).toContain('points to missing node ids')
+    }
   })
 
   it('rejects edges that point to missing nodes', () => {

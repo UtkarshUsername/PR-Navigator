@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { boardToFlowEdges, boardToFlowNodes, createDecoratedEdge, flowToBoardEdges } from './flow'
+import {
+  boardToFlowEdges,
+  boardToFlowNodes,
+  createDecoratedEdge,
+  flowToBoardEdges,
+  moveSelectedFlowNodesToBoard,
+} from './flow'
 import type { BoardData, FlowBoardEdge } from '../types'
 
 const board: BoardData = {
@@ -21,6 +27,10 @@ const board: BoardData = {
     },
   ],
   edges: [],
+  archived: {
+    nodes: [],
+    edges: [],
+  },
 }
 
 describe('boardToFlowNodes', () => {
@@ -97,5 +107,90 @@ describe('edge label normalization', () => {
         label: undefined,
       },
     ])
+  })
+})
+
+describe('moveSelectedFlowNodesToBoard', () => {
+  it('moves selected cards and keeps only relationships fully inside the moved selection', () => {
+    const result = moveSelectedFlowNodesToBoard({
+      selectedNodeIds: ['node-1', 'node-2'],
+      sourceNodes: [
+        boardToFlowNodes(
+          {
+            ...board,
+            nodes: [
+              board.nodes[0],
+              {
+                id: 'node-2',
+                kind: 'pr',
+                githubUrl: 'https://github.com/octocat/Hello-World/pull/43',
+                repoSlug: 'octocat/Hello-World',
+                number: 43,
+                title: 'Archive me too',
+                position: { x: 260, y: 0 },
+              },
+              {
+                id: 'node-3',
+                kind: 'issue',
+                githubUrl: 'https://github.com/octocat/Hello-World/issues/44',
+                repoSlug: 'octocat/Hello-World',
+                number: 44,
+                title: 'Stay on the current board',
+                position: { x: 520, y: 0 },
+              },
+            ],
+          },
+          'editor',
+        ),
+      ].flat(),
+      sourceEdges: boardToFlowEdges({
+        ...board,
+        nodes: [
+          board.nodes[0],
+          {
+            id: 'node-2',
+            kind: 'pr',
+            githubUrl: 'https://github.com/octocat/Hello-World/pull/43',
+            repoSlug: 'octocat/Hello-World',
+            number: 43,
+            title: 'Archive me too',
+            position: { x: 260, y: 0 },
+          },
+          {
+            id: 'node-3',
+            kind: 'issue',
+            githubUrl: 'https://github.com/octocat/Hello-World/issues/44',
+            repoSlug: 'octocat/Hello-World',
+            number: 44,
+            title: 'Stay on the current board',
+            position: { x: 520, y: 0 },
+          },
+        ],
+        edges: [
+          {
+            id: 'edge-1',
+            source: 'node-1',
+            target: 'node-2',
+            kind: 'solved_by',
+          },
+          {
+            id: 'edge-2',
+            source: 'node-2',
+            target: 'node-3',
+            kind: 'followed_by',
+          },
+        ],
+      }),
+      targetNodes: [],
+      targetEdges: [],
+    })
+
+    expect(result.sourceNodes.map((node) => node.id)).toEqual(['node-3'])
+    expect(result.sourceEdges).toHaveLength(0)
+    expect(result.targetNodes.map((node) => node.id)).toEqual(['node-1', 'node-2'])
+    expect(result.targetEdges.map((edge) => edge.id)).toEqual(['edge-1'])
+    expect(result.movedNodeCount).toBe(2)
+    expect(result.movedEdgeCount).toBe(1)
+    expect(result.droppedEdgeCount).toBe(1)
   })
 })

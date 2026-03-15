@@ -6,13 +6,14 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 - `npm run dev` starts the app in `editor` mode from `.env.development`
 - `npm run build` builds the app in `viewer` mode from `.env.production`
 - In the viewer build, `/` redirects to `/t3code-utkarsh`
+- The archived board lives at `/archived` in editor mode and `/t3code-utkarsh/archived` in viewer mode
 
 ## Editing workflow
 1. Run `npm install`
 2. Start the editor with `npm run dev`
 3. Add issue and PR cards from GitHub URLs
 4. Draw relationships from left to right: the left card is the earlier problem/origin item, and the right card is the later result/solution/follow-up item
-5. Export `board.json`
+5. Use `View archived` to switch boards and `Send ... to archived/current` to move selected cards between them
 6. Replace `public/board.json` with the exported file
 7. Rebuild and publish the static site
 
@@ -24,6 +25,7 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 ## Cards
 - Issues and PRs can be marked `By me` in the add-card form or the inspector
 - The exported board schema stores that flag as `isOwnedByMe`
+- The board schema now stores an `archived` collection alongside the current board
 
 ## Scripts
 - `npm run dev`

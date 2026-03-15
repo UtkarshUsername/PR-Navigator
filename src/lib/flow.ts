@@ -24,7 +24,11 @@ const EDGE_COLORS: Record<BoardEdgeKind, string> = {
 }
 
 export function boardToFlowNodes(board: BoardData, mode: AppMode): FlowBoardNode[] {
-  return board.nodes.map((node) => ({
+  return boardNodesToFlowNodes(board.nodes, mode)
+}
+
+export function boardNodesToFlowNodes(nodes: BoardNode[], mode: AppMode): FlowBoardNode[] {
+  return nodes.map((node) => ({
     id: node.id,
     type: 'navigator',
     position: node.position,
@@ -43,7 +47,11 @@ export function boardToFlowNodes(board: BoardData, mode: AppMode): FlowBoardNode
 }
 
 export function boardToFlowEdges(board: BoardData): FlowBoardEdge[] {
-  return board.edges.map(createDecoratedEdge)
+  return boardEdgesToFlowEdges(board.edges)
+}
+
+export function boardEdgesToFlowEdges(edges: BoardEdge[]): FlowBoardEdge[] {
+  return edges.map(createDecoratedEdge)
 }
 
 export function flowToBoardNodes(nodes: FlowBoardNode[]): BoardNode[] {
@@ -83,6 +91,46 @@ export function createBoardFromFlow(input: {
     meta: input.meta,
     nodes: flowToBoardNodes(input.nodes),
     edges: flowToBoardEdges(input.edges),
+    archived: {
+      nodes: [],
+      edges: [],
+    },
+  }
+}
+
+export function moveSelectedFlowNodesToBoard(input: {
+  selectedNodeIds: string[]
+  sourceNodes: FlowBoardNode[]
+  sourceEdges: FlowBoardEdge[]
+  targetNodes: FlowBoardNode[]
+  targetEdges: FlowBoardEdge[]
+}): {
+  sourceNodes: FlowBoardNode[]
+  sourceEdges: FlowBoardEdge[]
+  targetNodes: FlowBoardNode[]
+  targetEdges: FlowBoardEdge[]
+  movedNodeCount: number
+  movedEdgeCount: number
+  droppedEdgeCount: number
+} {
+  const selectedIds = new Set(input.selectedNodeIds)
+  const movedNodes = input.sourceNodes.filter((node) => selectedIds.has(node.id))
+  const selectedEdgeTouches = input.sourceEdges.filter(
+    (edge) => selectedIds.has(edge.source) || selectedIds.has(edge.target),
+  )
+  const movedEdges = selectedEdgeTouches.filter(
+    (edge) => selectedIds.has(edge.source) && selectedIds.has(edge.target),
+  )
+  const movedEdgeIds = new Set(movedEdges.map((edge) => edge.id))
+
+  return {
+    sourceNodes: input.sourceNodes.filter((node) => !selectedIds.has(node.id)),
+    sourceEdges: input.sourceEdges.filter((edge) => !selectedEdgeTouches.includes(edge)),
+    targetNodes: mergeById(input.targetNodes, movedNodes),
+    targetEdges: mergeById(input.targetEdges, movedEdges),
+    movedNodeCount: movedNodes.length,
+    movedEdgeCount: movedEdges.length,
+    droppedEdgeCount: selectedEdgeTouches.length - movedEdgeIds.size,
   }
 }
 
@@ -142,4 +190,14 @@ export function createDecoratedEdge(edge: {
 
 function roundCoordinate(value: number): number {
   return Math.round(value * 100) / 100
+}
+
+function mergeById<T extends { id: string }>(existing: T[], incoming: T[]): T[] {
+  const merged = new Map(existing.map((item) => [item.id, item]))
+
+  for (const item of incoming) {
+    merged.set(item.id, item)
+  }
+
+  return [...merged.values()]
 }

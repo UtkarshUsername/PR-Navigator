@@ -29,8 +29,15 @@ import { RepoSelector } from './components/RepoSelector'
 import { ThemeToggle } from './components/ThemeToggle'
 import { APP_NAME, DEFAULT_BOARD_TITLE, LOCAL_DRAFT_STORAGE_KEY, THEME_STORAGE_KEY } from './constants'
 import { createBoardSnapshot, createEmptyBoard, serializeBoardData } from './lib/board'
-import { boardToFlowEdges, boardToFlowNodes, createBoardFromFlow, createDecoratedEdge } from './lib/flow'
-import { getViewerRedirectPath, isViewerPath } from './lib/routing'
+import {
+  boardEdgesToFlowEdges,
+  boardNodesToFlowNodes,
+  createDecoratedEdge,
+  flowToBoardEdges,
+  flowToBoardNodes,
+  moveSelectedFlowNodesToBoard,
+} from './lib/flow'
+import { getBoardPath, getBoardView, getViewerRedirectPath, isViewerPath } from './lib/routing'
 import {
   applyThemePreferenceToDocument,
   loadThemePreference,
@@ -49,6 +56,7 @@ import type {
   BoardData,
   BoardNodeKind,
   BoardNodeState,
+  BoardView,
   FlowBoardEdge,
   FlowBoardNode,
   SelectionState,
@@ -65,15 +73,18 @@ const nodeTypes = {
 
 function App() {
   const isEditor = APP_MODE === 'editor'
-  const viewerRedirectPath = getViewerRedirectPath(window.location.pathname, APP_MODE)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const reactFlowRef = useRef<ReactFlowInstance<FlowBoardNode, FlowBoardEdge> | null>(null)
 
+  const [pathname, setPathname] = useState(() => window.location.pathname)
   const [meta, setMeta] = useState(createEmptyBoard().meta)
-  const [nodes, setNodes] = useState<FlowBoardNode[]>([])
-  const [edges, setEdges] = useState<FlowBoardEdge[]>([])
+  const [currentNodes, setCurrentNodes] = useState<FlowBoardNode[]>([])
+  const [currentEdges, setCurrentEdges] = useState<FlowBoardEdge[]>([])
+  const [archivedNodes, setArchivedNodes] = useState<FlowBoardNode[]>([])
+  const [archivedEdges, setArchivedEdges] = useState<FlowBoardEdge[]>([])
   const [selection, setSelection] = useState<SelectionState>(null)
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
   const [composerKind, setComposerKind] = useState<BoardNodeKind | null>(null)
   const [composerNumber, setComposerNumber] = useState('')
   const [composerTitle, setComposerTitle] = useState('')
@@ -91,6 +102,20 @@ function App() {
     loadThemePreference(THEME_STORAGE_KEY),
   )
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const viewerRedirectPath = getViewerRedirectPath(pathname, APP_MODE)
+  const boardView = getBoardView(pathname, APP_MODE)
+  const isArchivedView = boardView === 'archived'
+  const nodes = isArchivedView ? archivedNodes : currentNodes
+  const edges = isArchivedView ? archivedEdges : currentEdges
+  const focusBoard = useCallback(
+    (duration = 320) => {
+      reactFlowRef.current?.fitView({
+        padding: isEditor ? 0.18 : 0.14,
+        duration,
+      })
+    },
+    [isEditor],
+  )
 
   function showToast(message: string) {
     if (toastTimer.current) clearTimeout(toastTimer.current)
@@ -99,7 +124,19 @@ function App() {
   }
 
   const deferredSelection = useDeferredValue(selection)
-  const liveBoard = useMemo(() => createBoardFromFlow({ meta, nodes, edges }), [edges, meta, nodes])
+  const liveBoard = useMemo(
+    () =>
+      createBoardSnapshot({
+        meta,
+        nodes: flowToBoardNodes(currentNodes),
+        edges: flowToBoardEdges(currentEdges),
+        archived: {
+          nodes: flowToBoardNodes(archivedNodes),
+          edges: flowToBoardEdges(archivedEdges),
+        },
+      }),
+    [archivedEdges, archivedNodes, currentEdges, currentNodes, meta],
+  )
 
   const selectedNode = useMemo(
     () =>
@@ -138,12 +175,14 @@ function App() {
 
   const handleSelectionChange = useCallback(
     ({ nodes: selectedNodes, edges: selectedEdges }: { nodes: FlowBoardNode[]; edges: FlowBoardEdge[] }) => {
-      if (selectedNodes.length > 0) {
+      setSelectedNodeIds(selectedNodes.map((node) => node.id))
+
+      if (selectedNodes.length === 1 && selectedEdges.length === 0) {
         setSelection({ type: 'node', id: selectedNodes[0].id })
         return
       }
 
-      if (selectedEdges.length > 0) {
+      if (selectedNodes.length === 0 && selectedEdges.length === 1) {
         setSelection({ type: 'edge', id: selectedEdges[0].id })
         return
       }
@@ -168,6 +207,18 @@ function App() {
   }, [themePreference])
 
   useEffect(() => {
+    function handlePopState() {
+      setPathname(window.location.pathname)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!viewerRedirectPath) {
       return
     }
@@ -177,9 +228,11 @@ function App() {
   }, [viewerRedirectPath])
 
   useEffect(() => {
-    document.title =
-      APP_MODE === 'viewer' && isViewerPath(window.location.pathname) ? VIEWER_TITLE : APP_NAME
-  }, [viewerRedirectPath])
+    const baseTitle =
+      APP_MODE === 'viewer' && isViewerPath(pathname) ? VIEWER_TITLE : APP_NAME
+
+    document.title = isArchivedView ? `${baseTitle} Archived` : baseTitle
+  }, [isArchivedView, pathname, viewerRedirectPath])
 
   useEffect(() => {
     if (viewerRedirectPath) {
@@ -251,10 +304,38 @@ function App() {
         meta: liveBoard.meta,
         nodes: liveBoard.nodes,
         edges: liveBoard.edges,
+        archived: liveBoard.archived,
       }),
     )
     setDraftAvailable(true)
   }, [hasHydrated, isDirty, isEditor, liveBoard])
+
+  useEffect(() => {
+    setSelection(null)
+    setSelectedNodeIds([])
+  }, [boardView])
+
+  useEffect(() => {
+    if (!hasHydrated || viewerRedirectPath) {
+      return
+    }
+
+    requestAnimationFrame(() => {
+      focusBoard(240)
+    })
+  }, [boardView, focusBoard, hasHydrated, viewerRedirectPath])
+
+  useEffect(() => {
+    setSelectedNodeIds((currentSelectedNodeIds) => {
+      const validNodeIds = currentSelectedNodeIds.filter((id) =>
+        nodes.some((node) => node.id === id),
+      )
+
+      return areStringArraysEqual(currentSelectedNodeIds, validNodeIds)
+        ? currentSelectedNodeIds
+        : validNodeIds
+    })
+  }, [nodes])
 
   useEffect(() => {
     if (!selection) {
@@ -275,19 +356,33 @@ function App() {
     return null
   }
 
-  function focusBoard(duration = 320) {
-    reactFlowRef.current?.fitView({
-      padding: isEditor ? 0.18 : 0.14,
-      duration,
-    })
+  function updateActiveNodes(updater: (currentNodes: FlowBoardNode[]) => FlowBoardNode[]) {
+    if (isArchivedView) {
+      setArchivedNodes(updater)
+      return
+    }
+
+    setCurrentNodes(updater)
+  }
+
+  function updateActiveEdges(updater: (currentEdges: FlowBoardEdge[]) => FlowBoardEdge[]) {
+    if (isArchivedView) {
+      setArchivedEdges(updater)
+      return
+    }
+
+    setCurrentEdges(updater)
   }
 
   function applyLoadedBoard(board: BoardData, markDirty: boolean) {
     startTransition(() => {
       setMeta(board.meta)
-      setNodes(boardToFlowNodes(board, APP_MODE))
-      setEdges(boardToFlowEdges(board))
+      setCurrentNodes(boardNodesToFlowNodes(board.nodes, APP_MODE))
+      setCurrentEdges(boardEdgesToFlowEdges(board.edges))
+      setArchivedNodes(boardNodesToFlowNodes(board.archived.nodes, APP_MODE))
+      setArchivedEdges(boardEdgesToFlowEdges(board.archived.edges))
       setSelection(null)
+      setSelectedNodeIds([])
       setIsDirty(markDirty)
       setShowAddModal(false)
       setComposerKind(null)
@@ -305,7 +400,7 @@ function App() {
   }
 
   function handleNodesChange(changes: NodeChange<FlowBoardNode>[]) {
-    setNodes((currentNodes) => applyNodeChanges(changes, currentNodes))
+    updateActiveNodes((currentNodes) => applyNodeChanges(changes, currentNodes))
 
     if (changes.some(isMutatingNodeChange)) {
       setIsDirty(true)
@@ -313,7 +408,7 @@ function App() {
   }
 
   function handleEdgesChange(changes: EdgeChange<FlowBoardEdge>[]) {
-    setEdges((currentEdges) => applyEdgeChanges(changes, currentEdges))
+    updateActiveEdges((currentEdges) => applyEdgeChanges(changes, currentEdges))
 
     if (changes.some(isMutatingEdgeChange)) {
       setIsDirty(true)
@@ -342,7 +437,7 @@ function App() {
       },
     })
 
-    setEdges((currentEdges) => [...currentEdges, baseEdge])
+    updateActiveEdges((currentEdges) => [...currentEdges, baseEdge])
     setIsDirty(true)
   }
 
@@ -375,8 +470,9 @@ function App() {
       },
     }
 
-    setNodes((currentNodes) => [...currentNodes, newNode])
+    updateActiveNodes((currentNodes) => [...currentNodes, newNode])
     setSelection({ type: 'node', id: newNode.id })
+    setSelectedNodeIds([newNode.id])
     setShowAddModal(false)
     setComposerKind(null)
     setComposerNumber('')
@@ -410,6 +506,7 @@ function App() {
         meta: liveBoard.meta,
         nodes: liveBoard.nodes,
         edges: liveBoard.edges,
+        archived: liveBoard.archived,
       })
 
       await publishBoardData(snapshot)
@@ -428,12 +525,52 @@ function App() {
     showToast('Draft cleared')
   }
 
+  function handleMoveSelectedNodes(targetBoardView: BoardView) {
+    if (!isEditor || selectedNodeIds.length === 0 || targetBoardView === boardView) {
+      return
+    }
+
+    const transferResult =
+      boardView === 'archived'
+        ? moveSelectedFlowNodesToBoard({
+            selectedNodeIds,
+            sourceNodes: archivedNodes,
+            sourceEdges: archivedEdges,
+            targetNodes: currentNodes,
+            targetEdges: currentEdges,
+          })
+        : moveSelectedFlowNodesToBoard({
+            selectedNodeIds,
+            sourceNodes: currentNodes,
+            sourceEdges: currentEdges,
+            targetNodes: archivedNodes,
+            targetEdges: archivedEdges,
+          })
+
+    if (boardView === 'archived') {
+      setArchivedNodes(transferResult.sourceNodes)
+      setArchivedEdges(transferResult.sourceEdges)
+      setCurrentNodes(transferResult.targetNodes)
+      setCurrentEdges(transferResult.targetEdges)
+    } else {
+      setCurrentNodes(transferResult.sourceNodes)
+      setCurrentEdges(transferResult.sourceEdges)
+      setArchivedNodes(transferResult.targetNodes)
+      setArchivedEdges(transferResult.targetEdges)
+    }
+
+    setSelection(null)
+    setSelectedNodeIds([])
+    setIsDirty(true)
+    showToast(getMoveToastMessage(boardView, transferResult.movedNodeCount, transferResult.movedEdgeCount, transferResult.droppedEdgeCount))
+  }
+
   function updateSelectedNode(updater: (node: FlowBoardNode) => FlowBoardNode) {
     if (!selectedNode) {
       return
     }
 
-    setNodes((currentNodes) =>
+    updateActiveNodes((currentNodes) =>
       currentNodes.map((node) => (node.id === selectedNode.id ? updater(node) : node)),
     )
     setIsDirty(true)
@@ -444,7 +581,7 @@ function App() {
       return
     }
 
-    setEdges((currentEdges) =>
+    updateActiveEdges((currentEdges) =>
       currentEdges.map((edge) => (edge.id === selectedEdge.id ? updater(edge) : edge)),
     )
     setIsDirty(true)
@@ -455,13 +592,14 @@ function App() {
       return
     }
 
-    setNodes((currentNodes) => currentNodes.filter((node) => node.id !== selectedNode.id))
-    setEdges((currentEdges) =>
+    updateActiveNodes((currentNodes) => currentNodes.filter((node) => node.id !== selectedNode.id))
+    updateActiveEdges((currentEdges) =>
       currentEdges.filter(
         (edge) => edge.source !== selectedNode.id && edge.target !== selectedNode.id,
       ),
     )
     setSelection(null)
+    setSelectedNodeIds([])
     setIsDirty(true)
   }
 
@@ -470,7 +608,7 @@ function App() {
       return
     }
 
-    setEdges((currentEdges) => currentEdges.filter((edge) => edge.id !== selectedEdge.id))
+    updateActiveEdges((currentEdges) => currentEdges.filter((edge) => edge.id !== selectedEdge.id))
     setSelection(null)
     setIsDirty(true)
   }
@@ -510,9 +648,18 @@ function App() {
     setComposerError(null)
   }
 
+  function navigateToBoardView(nextBoardView: BoardView) {
+    const nextPath = getBoardPath(APP_MODE, nextBoardView)
+    const { search, hash } = window.location
+    const nextUrl = `${nextPath}${search}${hash}`
+
+    window.history.pushState({}, '', nextUrl)
+    setPathname(window.location.pathname)
+  }
+
   return (
     <main className="app-shell">
-      <section className={`board-stage board-stage--${APP_MODE}`}>
+      <section className={`board-stage board-stage--${APP_MODE} board-stage--${boardView}`}>
         <input
           ref={fileInputRef}
           type="file"
@@ -579,6 +726,23 @@ function App() {
         ) : null}
 
         <div className="board-actions-right">
+          <button
+            className="hud-button hud-button--primary"
+            type="button"
+            onClick={() => navigateToBoardView(isArchivedView ? 'current' : 'archived')}
+          >
+            {isArchivedView ? 'View current' : 'View archived'}
+          </button>
+          {isEditor ? (
+            <button
+              className="hud-button"
+              type="button"
+              onClick={() => handleMoveSelectedNodes(isArchivedView ? 'current' : 'archived')}
+              disabled={selectedNodeIds.length === 0}
+            >
+              {getMoveSelectionLabel(isArchivedView, selectedNodeIds.length)}
+            </button>
+          ) : null}
           <ThemeToggle
             preference={themePreference}
             onPreferenceChange={setThemePreference}
@@ -715,6 +879,50 @@ function isMutatingNodeChange(change: NodeChange<FlowBoardNode>): boolean {
 
 function isMutatingEdgeChange(change: EdgeChange<FlowBoardEdge>): boolean {
   return change.type !== 'select'
+}
+
+function getMoveSelectionLabel(isArchivedView: boolean, selectedNodeCount: number): string {
+  if (selectedNodeCount <= 0) {
+    return isArchivedView ? 'Send to current' : 'Send to archived'
+  }
+
+  const cardLabel = selectedNodeCount === 1 ? 'card' : 'cards'
+  return isArchivedView
+    ? `Send ${selectedNodeCount} ${cardLabel} to current`
+    : `Send ${selectedNodeCount} ${cardLabel} to archived`
+}
+
+function getMoveToastMessage(
+  boardView: BoardView,
+  movedNodeCount: number,
+  movedEdgeCount: number,
+  droppedEdgeCount: number,
+): string {
+  const action = boardView === 'archived' ? 'Moved' : 'Archived'
+  const cardLabel = movedNodeCount === 1 ? 'card' : 'cards'
+  let message = `${action} ${movedNodeCount} ${cardLabel}`
+
+  if (movedEdgeCount > 0) {
+    message += ` and ${movedEdgeCount} ${
+      movedEdgeCount === 1 ? 'relationship' : 'relationships'
+    }`
+  }
+
+  if (droppedEdgeCount > 0) {
+    message += `. ${droppedEdgeCount} ${
+      droppedEdgeCount === 1 ? 'connection was removed' : 'connections were removed'
+    } outside the moved selection`
+  }
+
+  return message
+}
+
+function areStringArraysEqual(left: string[], right: string[]) {
+  if (left.length !== right.length) {
+    return false
+  }
+
+  return left.every((value, index) => value === right[index])
 }
 
 function getSuggestedPosition(

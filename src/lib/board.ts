@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { DEFAULT_BOARD_TITLE, EDGE_KIND_LABELS, isStateAllowedForKind } from '../constants'
 import type {
+  BoardCollection,
   BoardData,
   BoardEdge,
   BoardEdgeKind,
@@ -49,6 +50,11 @@ const boardEdgeSchema = z.object({
   label: z.string().optional(),
 })
 
+const boardCollectionSchema = z.object({
+  nodes: z.array(boardNodeSchema),
+  edges: z.array(boardEdgeSchema),
+})
+
 export const boardDataSchema = z
   .object({
     version: z.literal(1),
@@ -58,47 +64,27 @@ export const boardDataSchema = z
     }),
     nodes: z.array(boardNodeSchema),
     edges: z.array(boardEdgeSchema),
+    archived: boardCollectionSchema.optional(),
   })
   .superRefine((board, ctx) => {
+    const archived = board.archived ?? createEmptyBoardCollection()
     const nodeIds = new Set<string>()
     const edgeIds = new Set<string>()
 
-    for (const node of board.nodes) {
-      if (nodeIds.has(node.id)) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Duplicate node id "${node.id}".`,
-        })
-      }
-
-      nodeIds.add(node.id)
-
-      if (!isStateAllowedForKind(node.kind, node.state)) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `State "${node.state}" is not valid for ${node.kind} node "${node.id}".`,
-        })
-      }
-    }
-
-    for (const edge of board.edges) {
-      if (edgeIds.has(edge.id)) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Duplicate edge id "${edge.id}".`,
-        })
-      }
-
-      edgeIds.add(edge.id)
-
-      if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Edge "${edge.id}" points to missing node ids.`,
-        })
-      }
-    }
+    validateBoardCollection(board, ctx, nodeIds, edgeIds)
+    validateBoardCollection(archived, ctx, nodeIds, edgeIds)
   })
+  .transform((board) => ({
+    ...board,
+    archived: board.archived ?? createEmptyBoardCollection(),
+  }))
+
+export function createEmptyBoardCollection(): BoardCollection {
+  return {
+    nodes: [],
+    edges: [],
+  }
+}
 
 export function createEmptyBoard(title = DEFAULT_BOARD_TITLE): BoardData {
   return {
@@ -109,6 +95,7 @@ export function createEmptyBoard(title = DEFAULT_BOARD_TITLE): BoardData {
     },
     nodes: [],
     edges: [],
+    archived: createEmptyBoardCollection(),
   }
 }
 
@@ -135,6 +122,7 @@ export function createBoardSnapshot(input: {
   meta: BoardMeta
   nodes: BoardNode[]
   edges: BoardEdge[]
+  archived?: BoardCollection
 }): BoardData {
   return {
     version: 1,
@@ -144,6 +132,10 @@ export function createBoardSnapshot(input: {
     },
     nodes: [...input.nodes],
     edges: [...input.edges],
+    archived: {
+      nodes: [...(input.archived?.nodes ?? [])],
+      edges: [...(input.archived?.edges ?? [])],
+    },
   }
 }
 
@@ -167,4 +159,50 @@ export function normalizeEdgeLabel(label: string | undefined): string | undefine
 
 export function getEdgeDisplayLabel(kind: BoardEdgeKind, label: string | undefined): string {
   return normalizeEdgeLabel(label) ?? EDGE_KIND_LABELS[kind]
+}
+
+function validateBoardCollection(
+  collection: BoardCollection,
+  ctx: z.RefinementCtx,
+  nodeIds: Set<string>,
+  edgeIds: Set<string>,
+) {
+  const collectionNodeIds = new Set<string>()
+
+  for (const node of collection.nodes) {
+    if (nodeIds.has(node.id)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Duplicate node id "${node.id}".`,
+      })
+    }
+
+    nodeIds.add(node.id)
+    collectionNodeIds.add(node.id)
+
+    if (!isStateAllowedForKind(node.kind, node.state)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `State "${node.state}" is not valid for ${node.kind} node "${node.id}".`,
+      })
+    }
+  }
+
+  for (const edge of collection.edges) {
+    if (edgeIds.has(edge.id)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Duplicate edge id "${edge.id}".`,
+      })
+    }
+
+    edgeIds.add(edge.id)
+
+    if (!collectionNodeIds.has(edge.source) || !collectionNodeIds.has(edge.target)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `Edge "${edge.id}" points to missing node ids.`,
+      })
+    }
+  }
 }

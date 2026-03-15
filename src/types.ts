@@ -1,6 +1,7 @@
 import type { Edge, Node } from '@xyflow/react'
 
 export type AppMode = 'viewer' | 'editor'
+export type BoardView = 'current' | 'archived'
 export type ThemePreference = 'system' | 'light' | 'dark'
 export type ResolvedTheme = 'light' | 'dark'
 
@@ -19,11 +20,17 @@ export interface BoardMeta {
   updatedAt: string
 }
 
+export interface BoardCollection {
+  nodes: BoardNode[]
+  edges: BoardEdge[]
+}
+
 export interface BoardData {
   version: 1
   meta: BoardMeta
   nodes: BoardNode[]
   edges: BoardEdge[]
+  archived: BoardCollection
 }
 
 export interface BoardNode {

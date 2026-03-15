@@ -11,11 +11,12 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 ## Editing workflow
 1. Run `npm install`
 2. Start the editor with `npm run dev`
-3. Add issue and PR cards from GitHub URLs
-4. Draw relationships from left to right: the left card is the earlier problem/origin item, and the right card is the later result/solution/follow-up item
-5. Use `View archived` to switch boards and `Send ... to archived/current` to move selected cards between them
-6. Replace `public/board.json` with the exported file
-7. Rebuild and publish the static site
+3. Set `VITE_GITHUB_USERNAME` in `.env.development` if you want the sidebar to auto-load your authored issues and PRs for the selected repo
+4. Add cards from the authored-items sidebar or from the manual issue/PR dialog
+5. Draw relationships from left to right: the left card is the earlier problem/origin item, and the right card is the later result/solution/follow-up item
+6. Use `View archived` to switch boards and `Send ... to archived/current` to move selected cards between them
+7. Replace `public/board.json` with the exported file
+8. Rebuild and publish the static site
 
 ## Relationships
 - Built-in relationship labels read left to right in plain English: `solved by`, `continued by`, `has option`, `combines into`, `followed by`, and `relates to`
@@ -24,8 +25,13 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 
 ## Cards
 - Issues and PRs can be marked `By me` in the add-card form or the inspector
+- The editor sidebar can fetch issues and PRs authored by a GitHub username in the selected repo and add them directly to the board
 - The exported board schema stores that flag as `isOwnedByMe`
 - The board schema now stores an `archived` collection alongside the current board
+
+## GitHub sidebar
+- `VITE_GITHUB_USERNAME` sets the default GitHub username used by the editor sidebar
+- `VITE_GITHUB_TOKEN` is optional but recommended if you hit GitHub API rate limits while fetching authored issues and PRs
 
 ## Scripts
 - `npm run dev`

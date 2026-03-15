@@ -23,11 +23,18 @@ import {
 
 import './App.css'
 import { AddCardModal } from './components/AddCardModal'
+import { AuthoredItemsSidebar } from './components/AuthoredItemsSidebar'
 import { GraphNode } from './components/GraphNode'
 import { InspectorPanel } from './components/InspectorPanel'
 import { RepoSelector } from './components/RepoSelector'
 import { ThemeToggle } from './components/ThemeToggle'
-import { APP_NAME, DEFAULT_BOARD_TITLE, LOCAL_DRAFT_STORAGE_KEY, THEME_STORAGE_KEY } from './constants'
+import {
+  APP_NAME,
+  DEFAULT_BOARD_TITLE,
+  GITHUB_USERNAME_STORAGE_KEY,
+  LOCAL_DRAFT_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+} from './constants'
 import { createBoardSnapshot, createEmptyBoard, serializeBoardData } from './lib/board'
 import {
   boardEdgesToFlowEdges,
@@ -37,6 +44,7 @@ import {
   flowToBoardNodes,
   moveSelectedFlowNodesToBoard,
 } from './lib/flow'
+import { createGitHubResourceId, fetchAuthoredGitHubItems } from './lib/github'
 import { getBoardPath, getBoardView, getViewerRedirectPath, isViewerPath } from './lib/routing'
 import {
   applyThemePreferenceToDocument,
@@ -47,9 +55,11 @@ import {
   clearDraftFromStorage,
   fetchBoardData,
   loadDraftFromStorage,
+  loadStringFromStorage,
   publishBoardData,
   readBoardFile,
   saveDraftToStorage,
+  saveStringToStorage,
 } from './lib/storage'
 import type {
   AppMode,
@@ -59,6 +69,7 @@ import type {
   BoardView,
   FlowBoardEdge,
   FlowBoardNode,
+  GitHubAuthoredItem,
   SelectionState,
   ThemePreference,
 } from './types'
@@ -66,6 +77,8 @@ import type {
 const APP_MODE: AppMode = import.meta.env.VITE_APP_MODE === 'viewer' ? 'viewer' : 'editor'
 const BOARD_DATA_PATH = import.meta.env.VITE_BOARD_DATA_PATH || '/board.json'
 const VIEWER_TITLE = 'T3 Code PR Navigator'
+const DEFAULT_GITHUB_USERNAME = import.meta.env.VITE_GITHUB_USERNAME?.trim() || ''
+const AUTHORED_ITEMS_LIMIT = 24
 
 const nodeTypes = {
   navigator: GraphNode,
@@ -73,6 +86,9 @@ const nodeTypes = {
 
 function App() {
   const isEditor = APP_MODE === 'editor'
+  const initialGitHubUsernameRef = useRef(
+    loadStringFromStorage(GITHUB_USERNAME_STORAGE_KEY) ?? DEFAULT_GITHUB_USERNAME,
+  )
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const reactFlowRef = useRef<ReactFlowInstance<FlowBoardNode, FlowBoardEdge> | null>(null)
@@ -93,6 +109,12 @@ function App() {
   const [composerError, setComposerError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedRepo, setSelectedRepo] = useState('pingdotgg/t3code')
+  const [githubUsernameInput, setGitHubUsernameInput] = useState(initialGitHubUsernameRef.current)
+  const [githubUsername, setGitHubUsername] = useState(initialGitHubUsernameRef.current)
+  const [authoredItems, setAuthoredItems] = useState<GitHubAuthoredItem[]>([])
+  const [authoredItemsError, setAuthoredItemsError] = useState<string | null>(null)
+  const [authoredItemsRefreshKey, setAuthoredItemsRefreshKey] = useState(0)
+  const [isLoadingAuthoredItems, setIsLoadingAuthoredItems] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [draftAvailable, setDraftAvailable] = useState(false)
   const [hasHydrated, setHasHydrated] = useState(false)
@@ -169,6 +191,16 @@ function App() {
     }
   }, [nodes, selectedEdge])
 
+  const authoredItemIdsOnBoard = useMemo(
+    () =>
+      new Set(
+        [...currentNodes, ...archivedNodes].map((node) =>
+          createGitHubResourceId(node.data.kind, node.data.repoSlug, node.data.number),
+        ),
+      ),
+    [archivedNodes, currentNodes],
+  )
+
   const applyLoadedBoardEvent = useEffectEvent((board: BoardData, markDirty: boolean) => {
     applyLoadedBoard(board, markDirty)
   })
@@ -205,6 +237,58 @@ function App() {
     applyThemePreferenceToDocument(themePreference)
     saveThemePreference(THEME_STORAGE_KEY, themePreference)
   }, [themePreference])
+
+  useEffect(() => {
+    saveStringToStorage(GITHUB_USERNAME_STORAGE_KEY, githubUsername)
+  }, [githubUsername])
+
+  useEffect(() => {
+    if (!isEditor) {
+      return
+    }
+
+    const trimmedUsername = githubUsername.trim()
+
+    if (!trimmedUsername) {
+      setAuthoredItems([])
+      setAuthoredItemsError(null)
+      setIsLoadingAuthoredItems(false)
+      return
+    }
+
+    let cancelled = false
+
+    setIsLoadingAuthoredItems(true)
+    setAuthoredItemsError(null)
+
+    void fetchAuthoredGitHubItems({
+      repoSlug: selectedRepo,
+      username: trimmedUsername,
+      limit: AUTHORED_ITEMS_LIMIT,
+    })
+      .then((items) => {
+        if (!cancelled) {
+          setAuthoredItems(items)
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setAuthoredItems([])
+          setAuthoredItemsError(
+            error instanceof Error ? error.message : 'Unable to load authored GitHub items.',
+          )
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoadingAuthoredItems(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [authoredItemsRefreshKey, githubUsername, isEditor, selectedRepo])
 
   useEffect(() => {
     function handlePopState() {
@@ -441,6 +525,46 @@ function App() {
     setIsDirty(true)
   }
 
+  function addNodeToActiveBoard(input: {
+    kind: BoardNodeKind
+    githubUrl: string
+    repoSlug: string
+    number: number
+    title: string
+    state?: BoardNodeState
+    isOwnedByMe?: boolean
+  }) {
+    const resourceId = createGitHubResourceId(input.kind, input.repoSlug, input.number)
+
+    if (authoredItemIdsOnBoard.has(resourceId)) {
+      showToast('That issue or PR is already on the board')
+      return false
+    }
+
+    const position = getSuggestedPosition(nodes.length, canvasRef.current, reactFlowRef.current)
+    const newNode: FlowBoardNode = {
+      id: createId('node'),
+      type: 'navigator',
+      position,
+      data: {
+        kind: input.kind,
+        githubUrl: input.githubUrl,
+        repoSlug: input.repoSlug,
+        number: input.number,
+        title: input.title.trim(),
+        state: input.state,
+        isOwnedByMe: input.isOwnedByMe,
+        mode: APP_MODE,
+      },
+    }
+
+    updateActiveNodes((currentNodes) => [...currentNodes, newNode])
+    setSelection({ type: 'node', id: newNode.id })
+    setSelectedNodeIds([newNode.id])
+    setIsDirty(true)
+    return true
+  }
+
   function handleCreateNode() {
     if (!composerKind) {
       return
@@ -453,34 +577,38 @@ function App() {
     }
 
     const resource = composerKind === 'issue' ? 'issues' : 'pull'
-    const position = getSuggestedPosition(nodes.length, canvasRef.current, reactFlowRef.current)
-    const newNode: FlowBoardNode = {
-      id: createId('node'),
-      type: 'navigator',
-      position,
-      data: {
+
+    if (
+      !addNodeToActiveBoard({
         kind: composerKind,
         githubUrl: `https://github.com/${selectedRepo}/${resource}/${num}`,
         repoSlug: selectedRepo,
         number: num,
-        title: composerTitle.trim(),
+        title: composerTitle,
         state: composerState || undefined,
         isOwnedByMe: composerIsOwnedByMe || undefined,
-        mode: APP_MODE,
-      },
+      })
+    ) {
+      return
     }
 
-    updateActiveNodes((currentNodes) => [...currentNodes, newNode])
-    setSelection({ type: 'node', id: newNode.id })
-    setSelectedNodeIds([newNode.id])
-    setShowAddModal(false)
-    setComposerKind(null)
-    setComposerNumber('')
-    setComposerTitle('')
-    setComposerState('')
-    setComposerIsOwnedByMe(false)
-    setComposerError(null)
-    setIsDirty(true)
+    closeAddModal()
+  }
+
+  function handleAddAuthoredItem(item: GitHubAuthoredItem) {
+    if (
+      addNodeToActiveBoard({
+        kind: item.kind,
+        githubUrl: item.githubUrl,
+        repoSlug: item.repoSlug,
+        number: item.number,
+        title: item.title,
+        state: item.state,
+        isOwnedByMe: true,
+      })
+    ) {
+      showToast(`Added ${item.kind === 'issue' ? 'issue' : 'PR'} #${item.number}`)
+    }
   }
 
   async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
@@ -648,6 +776,28 @@ function App() {
     setComposerError(null)
   }
 
+  function handleRefreshAuthoredItems() {
+    const normalizedUsername = githubUsernameInput.trim()
+
+    setGitHubUsernameInput(normalizedUsername)
+
+    if (!normalizedUsername) {
+      setGitHubUsername('')
+      setAuthoredItems([])
+      setAuthoredItemsError('Enter your GitHub username to load authored items.')
+      return
+    }
+
+    setAuthoredItemsError(null)
+
+    if (normalizedUsername === githubUsername) {
+      setAuthoredItemsRefreshKey((value) => value + 1)
+      return
+    }
+
+    setGitHubUsername(normalizedUsername)
+  }
+
   function navigateToBoardView(nextBoardView: BoardView) {
     const nextPath = getBoardPath(APP_MODE, nextBoardView)
     const { search, hash } = window.location
@@ -730,6 +880,25 @@ function App() {
             </button>
           ) : null}
         </div>
+
+        {isEditor ? (
+          <AuthoredItemsSidebar
+            authoredItems={authoredItems}
+            githubUsernameInput={githubUsernameInput}
+            isLoading={isLoadingAuthoredItems}
+            itemIdsOnBoard={authoredItemIdsOnBoard}
+            loadError={authoredItemsError}
+            selectedRepo={selectedRepo}
+            onAddItem={handleAddAuthoredItem}
+            onGitHubUsernameInputChange={(value) => {
+              setGitHubUsernameInput(value)
+              if (authoredItemsError) {
+                setAuthoredItemsError(null)
+              }
+            }}
+            onRefresh={handleRefreshAuthoredItems}
+          />
+        ) : null}
 
         {isEditor ? (
           <div className="board-actions-center">

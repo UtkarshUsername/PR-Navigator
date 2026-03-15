@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { parseGitHubResourceUrl } from './github'
+import { createGitHubResourceId, fetchAuthoredGitHubItems, parseGitHubResourceUrl } from './github'
 
 describe('parseGitHubResourceUrl', () => {
   it('parses GitHub issue URLs', () => {
@@ -31,5 +31,112 @@ describe('parseGitHubResourceUrl', () => {
     expect(() =>
       parseGitHubResourceUrl('https://github.com/octocat/Hello-World/pull/19', 'issue'),
     ).toThrow('That URL points to a pull request, not an issue.')
+  })
+})
+
+describe('createGitHubResourceId', () => {
+  it('normalizes repo slugs for duplicate detection', () => {
+    expect(createGitHubResourceId('issue', 'OctoCat/Hello-World', 42)).toBe(
+      'issue:octocat/hello-world:42',
+    )
+  })
+})
+
+describe('fetchAuthoredGitHubItems', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('loads authored issues and PRs and normalizes pull request states', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            items: [
+              {
+                number: 12,
+                title: 'Fix flaky CI',
+                html_url: 'https://github.com/octocat/Hello-World/issues/12',
+                state: 'closed',
+                updated_at: '2026-02-01T10:00:00Z',
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            items: [
+              {
+                number: 19,
+                title: 'Ship the sidebar',
+                html_url: 'https://github.com/octocat/Hello-World/pull/19',
+                state: 'closed',
+                updated_at: '2026-03-01T10:00:00Z',
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            draft: false,
+            merged_at: '2026-03-01T12:00:00Z',
+            state: 'closed',
+          }),
+          { status: 200 },
+        ),
+      )
+
+    await expect(
+      fetchAuthoredGitHubItems({
+        repoSlug: 'octocat/Hello-World',
+        username: 'octocat',
+        limit: 8,
+        fetchImpl: fetchMock,
+      }),
+    ).resolves.toEqual([
+      {
+        id: 'pr:octocat/hello-world:19',
+        kind: 'pr',
+        githubUrl: 'https://github.com/octocat/Hello-World/pull/19',
+        repoSlug: 'octocat/Hello-World',
+        number: 19,
+        title: 'Ship the sidebar',
+        state: 'merged',
+        updatedAt: '2026-03-01T10:00:00Z',
+      },
+      {
+        id: 'issue:octocat/hello-world:12',
+        kind: 'issue',
+        githubUrl: 'https://github.com/octocat/Hello-World/issues/12',
+        repoSlug: 'octocat/Hello-World',
+        number: 12,
+        title: 'Fix flaky CI',
+        state: 'closed',
+        updatedAt: '2026-02-01T10:00:00Z',
+      },
+    ])
+
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('surfaces a rate-limit specific error', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ message: 'API rate limit exceeded' }), { status: 403 }),
+    )
+
+    await expect(
+      fetchAuthoredGitHubItems({
+        repoSlug: 'octocat/Hello-World',
+        username: 'octocat',
+        fetchImpl: fetchMock,
+      }),
+    ).rejects.toThrow('GitHub rate limit reached. Add VITE_GITHUB_TOKEN to raise the limit.')
   })
 })

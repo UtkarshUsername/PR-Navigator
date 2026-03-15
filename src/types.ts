@@ -72,6 +72,17 @@ export interface NavigatorEdgeData extends Record<string, unknown> {
   label?: string
 }
 
+export interface GitHubAuthoredItem {
+  id: string
+  kind: BoardNodeKind
+  githubUrl: string
+  repoSlug: string
+  number: number
+  title: string
+  state: BoardNodeState
+  updatedAt: string
+}
+
 export type FlowBoardNode = Node<NavigatorNodeData, 'navigator'>
 export type FlowBoardEdge = Edge<NavigatorEdgeData, 'step'>
 

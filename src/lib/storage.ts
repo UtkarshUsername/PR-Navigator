@@ -43,6 +43,28 @@ export function clearDraftFromStorage(storageKey: string): void {
   window.localStorage.removeItem(storageKey)
 }
 
+export function loadStringFromStorage(storageKey: string): string | null {
+  const raw = window.localStorage.getItem(storageKey)
+
+  if (raw === null) {
+    return null
+  }
+
+  const value = raw.trim()
+  return value ? value : null
+}
+
+export function saveStringToStorage(storageKey: string, value: string): void {
+  const normalizedValue = value.trim()
+
+  if (!normalizedValue) {
+    window.localStorage.removeItem(storageKey)
+    return
+  }
+
+  window.localStorage.setItem(storageKey, normalizedValue)
+}
+
 export async function readBoardFile(file: File): Promise<BoardData> {
   const text = await file.text()
   return parseBoardData(JSON.parse(text))

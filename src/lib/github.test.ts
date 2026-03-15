@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createGitHubResourceId,
   fetchAuthoredGitHubItems,
-  parseClosingIssueIdsFromBody,
   parseGitHubResourceUrl,
 } from './github'
 
@@ -47,72 +46,61 @@ describe('createGitHubResourceId', () => {
   })
 })
 
-describe('parseClosingIssueIdsFromBody', () => {
-  it('extracts same-repo and explicit cross-repo closing references', () => {
-    expect(
-      parseClosingIssueIdsFromBody(
-        'Fixes #12, resolves octo-org/docs#44 and closes #18',
-        'octocat/Hello-World',
-      ),
-    ).toEqual([
-      'issue:octocat/hello-world:12',
-      'issue:octo-org/docs:44',
-      'issue:octocat/hello-world:18',
-    ])
-  })
-})
-
 describe('fetchAuthoredGitHubItems', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('loads authored issues and PRs and normalizes pull request states', async () => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            items: [
-              {
-                number: 12,
-                title: 'Fix flaky CI',
-                html_url: 'https://github.com/octocat/Hello-World/issues/12',
-                state: 'closed',
-                updated_at: '2026-02-01T10:00:00Z',
-              },
-            ],
-          }),
-          { status: 200 },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            items: [
-              {
-                number: 19,
-                title: 'Ship the sidebar',
-                html_url: 'https://github.com/octocat/Hello-World/pull/19',
-                state: 'closed',
-                updated_at: '2026-03-01T10:00:00Z',
-              },
-            ],
-          }),
-          { status: 200 },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            body: 'Fixes #12',
-            draft: false,
-            merged_at: '2026-03-01T12:00:00Z',
-            state: 'closed',
-          }),
-          { status: 200 },
-        ),
-      )
+  it('loads authored issues and PRs from GitHub GraphQL and uses linked issues from GitHub data', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: {
+            issues: {
+              nodes: [
+                {
+                  number: 12,
+                  title: 'Fix flaky CI',
+                  url: 'https://github.com/octocat/Hello-World/issues/12',
+                  state: 'CLOSED',
+                  updatedAt: '2026-02-01T10:00:00Z',
+                  repository: {
+                    nameWithOwner: 'octocat/Hello-World',
+                  },
+                },
+              ],
+            },
+            pullRequests: {
+              nodes: [
+                {
+                  number: 19,
+                  title: 'Ship the sidebar',
+                  url: 'https://github.com/octocat/Hello-World/pull/19',
+                  state: 'CLOSED',
+                  updatedAt: '2026-03-01T10:00:00Z',
+                  isDraft: false,
+                  mergedAt: '2026-03-01T12:00:00Z',
+                  repository: {
+                    nameWithOwner: 'octocat/Hello-World',
+                  },
+                  closingIssuesReferences: {
+                    nodes: [
+                      {
+                        number: 12,
+                        repository: {
+                          nameWithOwner: 'octocat/Hello-World',
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        }),
+        { status: 200 },
+      ),
+    )
 
     await expect(
       fetchAuthoredGitHubItems({
@@ -120,6 +108,7 @@ describe('fetchAuthoredGitHubItems', () => {
         username: 'octocat',
         limit: 8,
         fetchImpl: fetchMock,
+        token: 'test-token',
       }),
     ).resolves.toEqual([
       {
@@ -145,10 +134,20 @@ describe('fetchAuthoredGitHubItems', () => {
       },
     ])
 
-    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('surfaces a rate-limit specific error', async () => {
+  it('requires a token for the GraphQL sidebar fetch', async () => {
+    await expect(
+      fetchAuthoredGitHubItems({
+        repoSlug: 'octocat/Hello-World',
+        username: 'octocat',
+        fetchImpl: vi.fn<typeof fetch>(),
+      }),
+    ).rejects.toThrow('Set VITE_GITHUB_TOKEN to load authored items from GitHub GraphQL.')
+  })
+
+  it('surfaces a GraphQL rate-limit specific error', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify({ message: 'API rate limit exceeded' }), { status: 403 }),
     )
@@ -158,7 +157,30 @@ describe('fetchAuthoredGitHubItems', () => {
         repoSlug: 'octocat/Hello-World',
         username: 'octocat',
         fetchImpl: fetchMock,
+        token: 'test-token',
       }),
-    ).rejects.toThrow('GitHub rate limit reached. Add VITE_GITHUB_TOKEN to raise the limit.')
+    ).rejects.toThrow('GitHub rate limit reached or the token lacks access for GitHub GraphQL.')
+  })
+
+  it('surfaces GraphQL field errors', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          errors: [{ message: 'Resource not accessible by integration' }],
+        }),
+        { status: 200 },
+      ),
+    )
+
+    await expect(
+      fetchAuthoredGitHubItems({
+        repoSlug: 'octocat/Hello-World',
+        username: 'octocat',
+        fetchImpl: fetchMock,
+        token: 'test-token',
+      }),
+    ).rejects.toThrow(
+      'GitHub GraphQL request failed: Resource not accessible by integration',
+    )
   })
 })

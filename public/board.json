@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-15T06:43:24.720Z"
+    "updatedAt": "2026-03-15T15:01:47.992Z"
   },
   "nodes": [
     {
@@ -30,7 +30,7 @@
       "isOwnedByMe": true,
       "position": {
         "x": -351.93,
-        "y": -182.45
+        "y": -176.69
       }
     },
     {
@@ -57,8 +57,35 @@
       "state": "open",
       "isOwnedByMe": true,
       "position": {
-        "x": -342.8,
+        "x": -344.96,
         "y": -63.7
+      }
+    },
+    {
+      "id": "node-2jafq5w4",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/1117",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 1117,
+      "title": "fix: clear 'Plan Ready' on implementation in a new thread",
+      "state": "draft",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -336.65,
+        "y": 58.63
+      }
+    },
+    {
+      "id": "node-qtbq08nf",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/978",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 978,
+      "title": "Link planning and implementation threads when using Implement in new thread",
+      "state": "open",
+      "position": {
+        "x": -652.36,
+        "y": 52.65
       }
     }
   ],
@@ -73,6 +100,12 @@
       "id": "edge-p09kccau",
       "source": "node-66tsg1uu",
       "target": "node-h12lr2xq",
+      "kind": "solved_by"
+    },
+    {
+      "id": "edge-isbmvzm9",
+      "source": "node-qtbq08nf",
+      "target": "node-2jafq5w4",
       "kind": "solved_by"
     }
   ],

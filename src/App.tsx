@@ -107,7 +107,7 @@ function App() {
   const [authoredItemsError, setAuthoredItemsError] = useState<string | null>(null)
   const [authoredItemsRefreshKey, setAuthoredItemsRefreshKey] = useState(0)
   const [isLoadingAuthoredItems, setIsLoadingAuthoredItems] = useState(false)
-  const [isAuthoredSidebarOpen, setIsAuthoredSidebarOpen] = useState(true)
+  const [isAuthoredSidebarOpen, setIsAuthoredSidebarOpen] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [draftAvailable, setDraftAvailable] = useState(false)
   const [hasHydrated, setHasHydrated] = useState(false)

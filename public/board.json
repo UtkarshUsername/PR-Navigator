@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-15T15:01:47.992Z"
+    "updatedAt": "2026-03-15T18:15:55.786Z"
   },
   "nodes": [
     {
@@ -68,7 +68,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1117,
       "title": "fix: clear 'Plan Ready' on implementation in a new thread",
-      "state": "draft",
+      "state": "open",
       "isOwnedByMe": true,
       "position": {
         "x": -336.65,

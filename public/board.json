@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-15T05:10:49.246Z"
+    "updatedAt": "2026-03-15T06:43:24.720Z"
   },
   "nodes": [
     {
@@ -25,12 +25,40 @@
       "githubUrl": "https://github.com/pingdotgg/t3code/pull/1063",
       "repoSlug": "pingdotgg/t3code",
       "number": 1063,
-      "title": "Fix \"Implement in a new thread\" menu copy",
+      "title": "fix: fix menu copy",
       "state": "open",
       "isOwnedByMe": true,
       "position": {
         "x": -351.93,
         "y": -182.45
+      }
+    },
+    {
+      "id": "node-66tsg1uu",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/1108",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 1108,
+      "title": "[Bug]: (Meta Issue) Bug report form asks for screenshots in a shell-rendered field that cannot accept them",
+      "state": "open",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -648.43,
+        "y": -76.83
+      }
+    },
+    {
+      "id": "node-h12lr2xq",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/1109",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 1109,
+      "title": "Fix bug report issue template for screenshots",
+      "state": "open",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -342.8,
+        "y": -63.7
       }
     }
   ],
@@ -39,6 +67,12 @@
       "id": "edge-txws96kw",
       "source": "node-yk0en3or",
       "target": "node-m8lv20er",
+      "kind": "solved_by"
+    },
+    {
+      "id": "edge-p09kccau",
+      "source": "node-66tsg1uu",
+      "target": "node-h12lr2xq",
       "kind": "solved_by"
     }
   ],

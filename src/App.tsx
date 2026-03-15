@@ -77,7 +77,7 @@ import type {
 const APP_MODE: AppMode = import.meta.env.VITE_APP_MODE === 'viewer' ? 'viewer' : 'editor'
 const BOARD_DATA_PATH = import.meta.env.VITE_BOARD_DATA_PATH || '/board.json'
 const VIEWER_TITLE = 'T3 Code PR Navigator'
-const DEFAULT_GITHUB_USERNAME = import.meta.env.VITE_GITHUB_USERNAME?.trim() || ''
+const DEFAULT_GITHUB_USERNAME = import.meta.env.VITE_GITHUB_USERNAME?.trim() || 'UtkarshUsername'
 const AUTHORED_ITEMS_LIMIT = 24
 
 const nodeTypes = {
@@ -115,6 +115,7 @@ function App() {
   const [authoredItemsError, setAuthoredItemsError] = useState<string | null>(null)
   const [authoredItemsRefreshKey, setAuthoredItemsRefreshKey] = useState(0)
   const [isLoadingAuthoredItems, setIsLoadingAuthoredItems] = useState(false)
+  const [isAuthoredSidebarOpen, setIsAuthoredSidebarOpen] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [draftAvailable, setDraftAvailable] = useState(false)
   const [hasHydrated, setHasHydrated] = useState(false)
@@ -879,9 +880,18 @@ function App() {
               {getMoveSelectionLabel(isArchivedView, selectedNodeIds.length)}
             </button>
           ) : null}
+          {isEditor && !isAuthoredSidebarOpen ? (
+            <button
+              className="hud-button"
+              type="button"
+              onClick={() => setIsAuthoredSidebarOpen(true)}
+            >
+              Open sidebar
+            </button>
+          ) : null}
         </div>
 
-        {isEditor ? (
+        {isEditor && isAuthoredSidebarOpen ? (
           <AuthoredItemsSidebar
             authoredItems={authoredItems}
             githubUsernameInput={githubUsernameInput}
@@ -890,6 +900,7 @@ function App() {
             loadError={authoredItemsError}
             selectedRepo={selectedRepo}
             onAddItem={handleAddAuthoredItem}
+            onClose={() => setIsAuthoredSidebarOpen(false)}
             onGitHubUsernameInputChange={(value) => {
               setGitHubUsernameInput(value)
               if (authoredItemsError) {

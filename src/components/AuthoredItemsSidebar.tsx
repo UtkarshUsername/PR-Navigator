@@ -9,6 +9,7 @@ interface AuthoredItemsSidebarProps {
   loadError: string | null
   selectedRepo: string
   onAddItem: (item: GitHubAuthoredItem) => void
+  onClose: () => void
   onGitHubUsernameInputChange: (value: string) => void
   onRefresh: () => void
 }
@@ -21,6 +22,7 @@ export function AuthoredItemsSidebar({
   loadError,
   selectedRepo,
   onAddItem,
+  onClose,
   onGitHubUsernameInputChange,
   onRefresh,
 }: AuthoredItemsSidebarProps) {
@@ -35,14 +37,19 @@ export function AuthoredItemsSidebar({
           <p className="authored-sidebar__eyebrow">GitHub intake</p>
           <h2 className="authored-sidebar__title">Opened by you</h2>
         </div>
-        <button
-          className="hud-button"
-          type="button"
-          onClick={onRefresh}
-          disabled={!trimmedUsername || isLoading}
-        >
-          Refresh
-        </button>
+        <div className="authored-sidebar__header-actions">
+          <button
+            className="hud-button"
+            type="button"
+            onClick={onRefresh}
+            disabled={!trimmedUsername || isLoading}
+          >
+            Refresh
+          </button>
+          <button className="modal-close" type="button" onClick={onClose} aria-label="Close sidebar">
+            x
+          </button>
+        </div>
       </div>
 
       <div className="authored-sidebar__controls">

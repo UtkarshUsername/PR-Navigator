@@ -341,6 +341,12 @@
   align-items: center;
 }
 
+.authored-sidebar__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .authored-sidebar__header,
 .authored-item__actions {
   justify-content: space-between;

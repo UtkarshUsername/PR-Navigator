@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { createGitHubResourceId, fetchAuthoredGitHubItems, parseGitHubResourceUrl } from './github'
+import {
+  createGitHubResourceId,
+  fetchAuthoredGitHubItems,
+  parseClosingIssueIdsFromBody,
+  parseGitHubResourceUrl,
+} from './github'
 
 describe('parseGitHubResourceUrl', () => {
   it('parses GitHub issue URLs', () => {
@@ -39,6 +44,21 @@ describe('createGitHubResourceId', () => {
     expect(createGitHubResourceId('issue', 'OctoCat/Hello-World', 42)).toBe(
       'issue:octocat/hello-world:42',
     )
+  })
+})
+
+describe('parseClosingIssueIdsFromBody', () => {
+  it('extracts same-repo and explicit cross-repo closing references', () => {
+    expect(
+      parseClosingIssueIdsFromBody(
+        'Fixes #12, resolves octo-org/docs#44 and closes #18',
+        'octocat/Hello-World',
+      ),
+    ).toEqual([
+      'issue:octocat/hello-world:12',
+      'issue:octo-org/docs:44',
+      'issue:octocat/hello-world:18',
+    ])
   })
 })
 
@@ -85,6 +105,7 @@ describe('fetchAuthoredGitHubItems', () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
+            body: 'Fixes #12',
             draft: false,
             merged_at: '2026-03-01T12:00:00Z',
             state: 'closed',
@@ -110,6 +131,7 @@ describe('fetchAuthoredGitHubItems', () => {
         title: 'Ship the sidebar',
         state: 'merged',
         updatedAt: '2026-03-01T10:00:00Z',
+        closingIssueIds: ['issue:octocat/hello-world:12'],
       },
       {
         id: 'issue:octocat/hello-world:12',

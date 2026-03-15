@@ -11,7 +11,7 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 ## Editing workflow
 1. Run `npm install`
 2. Start the editor with `npm run dev`
-3. Set `VITE_GITHUB_USERNAME` in `.env.development` if you want the sidebar to auto-load your authored issues and PRs for the selected repo
+3. Use the sidebar to pull your authored issues and PRs for the selected repo
 4. Add cards from the authored-items sidebar or from the manual issue/PR dialog
 5. Draw relationships from left to right: the left card is the earlier problem/origin item, and the right card is the later result/solution/follow-up item
 6. Use `View archived` to switch boards and `Send ... to archived/current` to move selected cards between them
@@ -21,11 +21,12 @@ A static React + TypeScript board for arranging GitHub issues and pull requests 
 ## Relationships
 - Built-in relationship labels read left to right in plain English: `solved by`, `continued by`, `has option`, `combines into`, `followed by`, and `relates to`
 - Common examples: Issue -> PR = `solved by`, PR -> PR = `continued by`, one Issue -> multiple PRs = `has option`, multiple Issues -> one PR = `combines into`
+- PR cards fetched from GitHub can auto-create `solved by` edges when the PR body includes closing keywords like `fixes #123`
 - In the editor, connect cards from the left item to the right item and keep the result/follow-up card physically to the right
 
 ## Cards
 - Issues and PRs can be marked `By me` in the add-card form or the inspector
-- The editor sidebar can fetch issues and PRs authored by a GitHub username in the selected repo and add them directly to the board
+- The editor sidebar fetches issues and PRs authored by the configured GitHub username and adds them directly to the board
 - The exported board schema stores that flag as `isOwnedByMe`
 - The board schema now stores an `archived` collection alongside the current board
 

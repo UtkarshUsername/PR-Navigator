@@ -5,6 +5,7 @@ import {
   boardToFlowNodes,
   createDecoratedEdge,
   flowToBoardEdges,
+  flowToBoardNodes,
   moveSelectedFlowNodesToBoard,
 } from './flow'
 import type { BoardData, FlowBoardEdge } from '../types'
@@ -40,6 +41,30 @@ describe('boardToFlowNodes', () => {
 
   it('leaves editor nodes without viewer-only classes', () => {
     expect(boardToFlowNodes(board, 'editor')[0].className).toBeUndefined()
+  })
+
+  it('preserves PR closing issue metadata through flow conversion', () => {
+    const nodes = boardToFlowNodes(
+      {
+        ...board,
+        nodes: [
+          {
+            id: 'node-pr',
+            kind: 'pr',
+            githubUrl: 'https://github.com/octocat/Hello-World/pull/55',
+            repoSlug: 'octocat/Hello-World',
+            number: 55,
+            title: 'Link issues automatically',
+            closingIssueIds: ['issue:octocat/hello-world:42'],
+            position: { x: 260, y: 0 },
+          },
+        ],
+      },
+      'editor',
+    )
+
+    expect(nodes[0].data.closingIssueIds).toEqual(['issue:octocat/hello-world:42'])
+    expect(flowToBoardNodes(nodes)[0].closingIssueIds).toEqual(['issue:octocat/hello-world:42'])
   })
 })
 

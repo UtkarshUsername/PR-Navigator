@@ -31,7 +31,6 @@ import { ThemeToggle } from './components/ThemeToggle'
 import {
   APP_NAME,
   DEFAULT_BOARD_TITLE,
-  GITHUB_USERNAME_STORAGE_KEY,
   LOCAL_DRAFT_STORAGE_KEY,
   THEME_STORAGE_KEY,
 } from './constants'
@@ -55,11 +54,9 @@ import {
   clearDraftFromStorage,
   fetchBoardData,
   loadDraftFromStorage,
-  loadStringFromStorage,
   publishBoardData,
   readBoardFile,
   saveDraftToStorage,
-  saveStringToStorage,
 } from './lib/storage'
 import type {
   AppMode,
@@ -86,9 +83,6 @@ const nodeTypes = {
 
 function App() {
   const isEditor = APP_MODE === 'editor'
-  const initialGitHubUsernameRef = useRef(
-    loadStringFromStorage(GITHUB_USERNAME_STORAGE_KEY) ?? DEFAULT_GITHUB_USERNAME,
-  )
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const canvasRef = useRef<HTMLDivElement | null>(null)
   const reactFlowRef = useRef<ReactFlowInstance<FlowBoardNode, FlowBoardEdge> | null>(null)
@@ -109,8 +103,6 @@ function App() {
   const [composerError, setComposerError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedRepo, setSelectedRepo] = useState('pingdotgg/t3code')
-  const [githubUsernameInput, setGitHubUsernameInput] = useState(initialGitHubUsernameRef.current)
-  const [githubUsername, setGitHubUsername] = useState(initialGitHubUsernameRef.current)
   const [authoredItems, setAuthoredItems] = useState<GitHubAuthoredItem[]>([])
   const [authoredItemsError, setAuthoredItemsError] = useState<string | null>(null)
   const [authoredItemsRefreshKey, setAuthoredItemsRefreshKey] = useState(0)
@@ -240,20 +232,7 @@ function App() {
   }, [themePreference])
 
   useEffect(() => {
-    saveStringToStorage(GITHUB_USERNAME_STORAGE_KEY, githubUsername)
-  }, [githubUsername])
-
-  useEffect(() => {
     if (!isEditor) {
-      return
-    }
-
-    const trimmedUsername = githubUsername.trim()
-
-    if (!trimmedUsername) {
-      setAuthoredItems([])
-      setAuthoredItemsError(null)
-      setIsLoadingAuthoredItems(false)
       return
     }
 
@@ -264,7 +243,7 @@ function App() {
 
     void fetchAuthoredGitHubItems({
       repoSlug: selectedRepo,
-      username: trimmedUsername,
+      username: DEFAULT_GITHUB_USERNAME,
       limit: AUTHORED_ITEMS_LIMIT,
     })
       .then((items) => {
@@ -289,7 +268,7 @@ function App() {
     return () => {
       cancelled = true
     }
-  }, [authoredItemsRefreshKey, githubUsername, isEditor, selectedRepo])
+  }, [authoredItemsRefreshKey, isEditor, selectedRepo])
 
   useEffect(() => {
     function handlePopState() {
@@ -534,6 +513,7 @@ function App() {
     title: string
     state?: BoardNodeState
     isOwnedByMe?: boolean
+    closingIssueIds?: string[]
   }) {
     const resourceId = createGitHubResourceId(input.kind, input.repoSlug, input.number)
 
@@ -542,7 +522,17 @@ function App() {
       return false
     }
 
-    const position = getSuggestedPosition(nodes.length, canvasRef.current, reactFlowRef.current)
+    const position = getSuggestedLinkedPosition(
+      {
+        kind: input.kind,
+        repoSlug: input.repoSlug,
+        number: input.number,
+        closingIssueIds: input.closingIssueIds,
+      },
+      nodes,
+      canvasRef.current,
+      reactFlowRef.current,
+    )
     const newNode: FlowBoardNode = {
       id: createId('node'),
       type: 'navigator',
@@ -555,11 +545,16 @@ function App() {
         title: input.title.trim(),
         state: input.state,
         isOwnedByMe: input.isOwnedByMe,
+        closingIssueIds: input.closingIssueIds,
         mode: APP_MODE,
       },
     }
+    const autoLinkedEdges = createAutoLinkedEdges(newNode, nodes, edges)
 
     updateActiveNodes((currentNodes) => [...currentNodes, newNode])
+    if (autoLinkedEdges.length > 0) {
+      updateActiveEdges((currentEdges) => [...currentEdges, ...autoLinkedEdges])
+    }
     setSelection({ type: 'node', id: newNode.id })
     setSelectedNodeIds([newNode.id])
     setIsDirty(true)
@@ -606,6 +601,7 @@ function App() {
         title: item.title,
         state: item.state,
         isOwnedByMe: true,
+        closingIssueIds: item.closingIssueIds,
       })
     ) {
       showToast(`Added ${item.kind === 'issue' ? 'issue' : 'PR'} #${item.number}`)
@@ -778,25 +774,8 @@ function App() {
   }
 
   function handleRefreshAuthoredItems() {
-    const normalizedUsername = githubUsernameInput.trim()
-
-    setGitHubUsernameInput(normalizedUsername)
-
-    if (!normalizedUsername) {
-      setGitHubUsername('')
-      setAuthoredItems([])
-      setAuthoredItemsError('Enter your GitHub username to load authored items.')
-      return
-    }
-
     setAuthoredItemsError(null)
-
-    if (normalizedUsername === githubUsername) {
-      setAuthoredItemsRefreshKey((value) => value + 1)
-      return
-    }
-
-    setGitHubUsername(normalizedUsername)
+    setAuthoredItemsRefreshKey((value) => value + 1)
   }
 
   function navigateToBoardView(nextBoardView: BoardView) {
@@ -894,19 +873,11 @@ function App() {
         {isEditor && isAuthoredSidebarOpen ? (
           <AuthoredItemsSidebar
             authoredItems={authoredItems}
-            githubUsernameInput={githubUsernameInput}
             isLoading={isLoadingAuthoredItems}
             itemIdsOnBoard={authoredItemIdsOnBoard}
             loadError={authoredItemsError}
-            selectedRepo={selectedRepo}
             onAddItem={handleAddAuthoredItem}
             onClose={() => setIsAuthoredSidebarOpen(false)}
-            onGitHubUsernameInputChange={(value) => {
-              setGitHubUsernameInput(value)
-              if (authoredItemsError) {
-                setAuthoredItemsError(null)
-              }
-            }}
             onRefresh={handleRefreshAuthoredItems}
           />
         ) : null}
@@ -1122,12 +1093,128 @@ function getSuggestedPosition(
   return reactFlow.screenToFlowPosition(viewportPosition)
 }
 
+function getSuggestedLinkedPosition(
+  input: {
+    kind: BoardNodeKind
+    repoSlug: string
+    number: number
+    closingIssueIds?: string[]
+  },
+  existingNodes: FlowBoardNode[],
+  canvas: HTMLDivElement | null,
+  reactFlow: ReactFlowInstance<FlowBoardNode, FlowBoardEdge> | null,
+) {
+  if (input.kind === 'pr' && input.closingIssueIds?.length) {
+    const linkedIssues = existingNodes.filter(
+      (node) =>
+        node.data.kind === 'issue' &&
+        input.closingIssueIds?.includes(
+          createGitHubResourceId('issue', node.data.repoSlug, node.data.number),
+        ),
+    )
+
+    if (linkedIssues.length > 0) {
+      return {
+        x: Math.max(...linkedIssues.map((node) => node.position.x)) + 260,
+        y: averagePosition(linkedIssues),
+      }
+    }
+  }
+
+  if (input.kind === 'issue') {
+    const issueId = createGitHubResourceId('issue', input.repoSlug, input.number)
+    const linkedPullRequests = existingNodes.filter(
+      (node) => node.data.kind === 'pr' && node.data.closingIssueIds?.includes(issueId),
+    )
+
+    if (linkedPullRequests.length > 0) {
+      return {
+        x: Math.min(...linkedPullRequests.map((node) => node.position.x)) - 260,
+        y: averagePosition(linkedPullRequests),
+      }
+    }
+  }
+
+  return getSuggestedPosition(existingNodes.length, canvas, reactFlow)
+}
+
 function isNodePositionLeftToRight(leftNode: FlowBoardNode, rightNode: FlowBoardNode) {
   return leftNode.id !== rightNode.id && leftNode.position.x < rightNode.position.x
 }
 
+function createAutoLinkedEdges(
+  newNode: FlowBoardNode,
+  existingNodes: FlowBoardNode[],
+  existingEdges: FlowBoardEdge[],
+): FlowBoardEdge[] {
+  const pairIds = new Set(
+    existingEdges.flatMap((edge) => [`${edge.source}:${edge.target}`, `${edge.target}:${edge.source}`]),
+  )
+  const linkedEdges: FlowBoardEdge[] = []
+
+  if (newNode.data.kind === 'pr') {
+    const closingIssueIds = new Set(newNode.data.closingIssueIds ?? [])
+
+    for (const node of existingNodes) {
+      if (node.data.kind !== 'issue') {
+        continue
+      }
+
+      if (!closingIssueIds.has(createGitHubResourceId('issue', node.data.repoSlug, node.data.number))) {
+        continue
+      }
+
+      if (pairIds.has(`${node.id}:${newNode.id}`)) {
+        continue
+      }
+
+      linkedEdges.push(
+        createDecoratedEdge({
+          id: createId('edge'),
+          source: node.id,
+          target: newNode.id,
+          data: { kind: 'solved_by' },
+        }),
+      )
+      pairIds.add(`${node.id}:${newNode.id}`)
+      pairIds.add(`${newNode.id}:${node.id}`)
+    }
+  }
+
+  if (newNode.data.kind === 'issue') {
+    const issueId = createGitHubResourceId('issue', newNode.data.repoSlug, newNode.data.number)
+
+    for (const node of existingNodes) {
+      if (node.data.kind !== 'pr' || !node.data.closingIssueIds?.includes(issueId)) {
+        continue
+      }
+
+      if (pairIds.has(`${newNode.id}:${node.id}`)) {
+        continue
+      }
+
+      linkedEdges.push(
+        createDecoratedEdge({
+          id: createId('edge'),
+          source: newNode.id,
+          target: node.id,
+          data: { kind: 'solved_by' },
+        }),
+      )
+      pairIds.add(`${newNode.id}:${node.id}`)
+      pairIds.add(`${node.id}:${newNode.id}`)
+    }
+  }
+
+  return linkedEdges
+}
+
 function createId(prefix: 'node' | 'edge') {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+function averagePosition(nodes: FlowBoardNode[]): number {
+  return nodes.reduce((total, node) => total + node.position.y, 0) / nodes.length
 }
 
 export default App

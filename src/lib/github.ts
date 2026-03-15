@@ -20,6 +20,7 @@ interface GitHubSearchResponse {
 }
 
 interface GitHubPullRequestResponse {
+  body: string | null
   draft: boolean
   merged_at: string | null
   state: 'open' | 'closed'
@@ -37,6 +38,9 @@ const GITHUB_HOSTNAMES = new Set(['github.com', 'www.github.com'])
 const GITHUB_API_BASE_URL = 'https://api.github.com'
 const DEFAULT_FETCH_LIMIT = 24
 const MAX_ITEMS_PER_KIND = 12
+const CLOSING_KEYWORD_PATTERN =
+  /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\b[:\s]+((?:(?:[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)?#\d+)(?:\s*(?:,|and)\s*(?:(?:[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)?#\d+))*)/gi
+const ISSUE_REFERENCE_PATTERN = /((?:[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)?#\d+)/gi
 
 export function createGitHubResourceId(
   kind: BoardNodeKind,
@@ -147,6 +151,7 @@ export async function fetchAuthoredGitHubItems({
         'pr',
         item,
         getPullRequestState(prDetails[index]),
+        parseClosingIssueIdsFromBody(prDetails[index].body ?? '', trimmedRepoSlug),
       ),
     ),
   ]
@@ -220,6 +225,7 @@ function mapSearchResultToAuthoredItem(
   kind: BoardNodeKind,
   item: GitHubSearchResultItem,
   state = getGitHubStateFromClosedFlag(item.state),
+  closingIssueIds: string[] | undefined = undefined,
 ): GitHubAuthoredItem {
   return {
     id: createGitHubResourceId(kind, repoSlug, item.number),
@@ -230,6 +236,7 @@ function mapSearchResultToAuthoredItem(
     title: item.title,
     state,
     updatedAt: item.updated_at,
+    closingIssueIds: closingIssueIds?.length ? closingIssueIds : undefined,
   }
 }
 
@@ -247,4 +254,34 @@ function getPullRequestState(item: GitHubPullRequestResponse): BoardNodeState {
 
 function getGitHubStateFromClosedFlag(state: 'open' | 'closed'): BoardNodeState {
   return state === 'open' ? 'open' : 'closed'
+}
+
+export function parseClosingIssueIdsFromBody(body: string, defaultRepoSlug: string): string[] {
+  const closingIssueIds = new Set<string>()
+
+  for (const match of body.matchAll(CLOSING_KEYWORD_PATTERN)) {
+    const references = match[1]?.match(ISSUE_REFERENCE_PATTERN) ?? []
+
+    for (const reference of references) {
+      const normalizedReference = reference.trim()
+
+      if (!normalizedReference) {
+        continue
+      }
+
+      const [explicitRepoSlug, numberSegment] = normalizedReference.includes('/')
+        ? normalizedReference.split('#')
+        : [defaultRepoSlug, normalizedReference.slice(1)]
+
+      if (!explicitRepoSlug || !numberSegment || !/^\d+$/.test(numberSegment)) {
+        continue
+      }
+
+      closingIssueIds.add(
+        createGitHubResourceId('issue', explicitRepoSlug, Number(numberSegment)),
+      )
+    }
+  }
+
+  return [...closingIssueIds]
 }

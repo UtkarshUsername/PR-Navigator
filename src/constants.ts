@@ -10,7 +10,6 @@ export type NodeStateBadgeTone =
 export const APP_NAME = 'PR Navigator'
 export const LOCAL_DRAFT_STORAGE_KEY = 'pr-navigator/local-draft'
 export const THEME_STORAGE_KEY = 'pr-navigator/theme'
-export const GITHUB_USERNAME_STORAGE_KEY = 'pr-navigator/github-username'
 export const DEFAULT_BOARD_TITLE = 'PR Navigator Board'
 
 export const NODE_KIND_LABELS: Record<BoardNodeKind, string> = {

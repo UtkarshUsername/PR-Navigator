@@ -720,6 +720,15 @@ function App() {
           >
             {isArchivedView ? 'View current' : 'View archived'}
           </button>
+          {isEditor && selectedNodeIds.length > 0 ? (
+            <button
+              className="hud-button"
+              type="button"
+              onClick={() => handleMoveSelectedNodes(isArchivedView ? 'current' : 'archived')}
+            >
+              {getMoveSelectionLabel(isArchivedView, selectedNodeIds.length)}
+            </button>
+          ) : null}
         </div>
 
         {isEditor ? (
@@ -747,15 +756,6 @@ function App() {
         ) : null}
 
         <div className="board-actions-right">
-          {isEditor && selectedNodeIds.length > 0 ? (
-            <button
-              className="hud-button"
-              type="button"
-              onClick={() => handleMoveSelectedNodes(isArchivedView ? 'current' : 'archived')}
-            >
-              {getMoveSelectionLabel(isArchivedView, selectedNodeIds.length)}
-            </button>
-          ) : null}
           <ThemeToggle
             preference={themePreference}
             onPreferenceChange={setThemePreference}
@@ -883,18 +883,12 @@ function isMutatingEdgeChange(change: EdgeChange<FlowBoardEdge>): boolean {
 
 function getMoveSelectionLabel(isArchivedView: boolean, selectedNodeCount: number): string {
   if (selectedNodeCount <= 0) {
-    return isArchivedView ? 'Send connected cards to current' : 'Send connected cards to archived'
-  }
-
-  if (selectedNodeCount === 1) {
-    return isArchivedView
-      ? 'Send card and connected cards to current'
-      : 'Send card and connected cards to archived'
+    return isArchivedView ? 'Send connected set to current' : 'Send connected set to archived'
   }
 
   return isArchivedView
-    ? 'Send selection and connected cards to current'
-    : 'Send selection and connected cards to archived'
+    ? 'Send connected set to current'
+    : 'Send connected set to archived'
 }
 
 function getMoveToastMessage(

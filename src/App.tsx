@@ -712,6 +712,16 @@ function App() {
           />
         </div>
 
+        <div className="board-actions-left">
+          <button
+            className="hud-button hud-button--primary"
+            type="button"
+            onClick={() => navigateToBoardView(isArchivedView ? 'current' : 'archived')}
+          >
+            {isArchivedView ? 'View current' : 'View archived'}
+          </button>
+        </div>
+
         {isEditor ? (
           <button
             className="fab-add"
@@ -726,19 +736,11 @@ function App() {
         ) : null}
 
         <div className="board-actions-right">
-          <button
-            className="hud-button hud-button--primary"
-            type="button"
-            onClick={() => navigateToBoardView(isArchivedView ? 'current' : 'archived')}
-          >
-            {isArchivedView ? 'View current' : 'View archived'}
-          </button>
-          {isEditor ? (
+          {isEditor && selectedNodeIds.length > 0 ? (
             <button
               className="hud-button"
               type="button"
               onClick={() => handleMoveSelectedNodes(isArchivedView ? 'current' : 'archived')}
-              disabled={selectedNodeIds.length === 0}
             >
               {getMoveSelectionLabel(isArchivedView, selectedNodeIds.length)}
             </button>

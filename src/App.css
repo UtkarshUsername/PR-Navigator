@@ -120,7 +120,7 @@
   position: absolute;
   z-index: 20;
   left: 1rem;
-  top: 1rem;
+  bottom: 1rem;
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
@@ -157,7 +157,7 @@
   position: absolute;
   z-index: 20;
   top: 1rem;
-  left: 1rem;
+  right: 1rem;
   width: 2.6rem;
   height: 2.6rem;
   border: 1px solid var(--panel-border);
@@ -187,17 +187,31 @@
   background: var(--panel-bg-alt);
 }
 
+.board-actions-left,
 .board-actions-right {
   position: absolute;
   z-index: 20;
   top: 1rem;
-  right: 1rem;
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
   align-items: flex-start;
   gap: 0.5rem;
+}
+
+.board-actions-left {
+  left: 1rem;
   max-width: calc(100% - 5rem);
+}
+
+.board-actions-right {
+  right: 1rem;
+  justify-content: flex-end;
+  max-width: calc(100% - 5rem);
+}
+
+.board-stage--editor .board-actions-right {
+  right: 4.2rem;
+  max-width: calc(100% - 8.5rem);
 }
 
 .hud-button,
@@ -803,11 +817,25 @@ button.repo-selector__option:hover,
 }
 
 @media (max-width: 640px) {
+  .board-actions-left,
   .board-actions-right {
     top: 0.75rem;
-    right: 0.75rem;
     gap: 0.4rem;
+  }
+
+  .board-actions-left {
+    left: 0.75rem;
     max-width: calc(100% - 4.35rem);
+  }
+
+  .board-actions-right {
+    right: 0.75rem;
+    max-width: calc(100% - 4.35rem);
+  }
+
+  .board-stage--editor .board-actions-right {
+    right: 3.95rem;
+    max-width: calc(100% - 7.8rem);
   }
 
   .selection-panel {
@@ -820,8 +848,13 @@ button.repo-selector__option:hover,
   .viewer-legend {
     left: 0.75rem;
     right: 0.75rem;
-    top: 3.85rem;
+    bottom: 0.75rem;
     max-width: none;
+  }
+
+  .fab-add {
+    top: 0.75rem;
+    right: 0.75rem;
   }
 
   .nav-node__surface {

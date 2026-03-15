@@ -2,89 +2,117 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-15T04:35:30.817Z"
+    "updatedAt": "2026-03-15T05:10:49.246Z"
   },
   "nodes": [
     {
-      "id": "node-issue-255",
+      "id": "node-yk0en3or",
       "kind": "issue",
-      "githubUrl": "https://github.com/pingdotgg/t3code/issues/255",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/1062",
       "repoSlug": "pingdotgg/t3code",
-      "number": 255,
-      "title": "Plan takes over significant vertical space with no option to hide",
-      "state": "closed",
+      "number": 1062,
+      "title": "[Bug]: Plan action label says \"Implement in new thread\" instead of \"Implement in a new thread\"",
+      "state": "open",
       "isOwnedByMe": true,
       "position": {
-        "x": -502.72,
-        "y": 200.71
+        "x": -647.68,
+        "y": -202.83
       }
     },
     {
-      "id": "node-issue-240",
-      "kind": "issue",
-      "githubUrl": "https://github.com/pingdotgg/t3code/issues/240",
-      "repoSlug": "pingdotgg/t3code",
-      "number": 240,
-      "title": "Settings are not discoverable on Windows",
-      "state": "closed",
-      "isOwnedByMe": true,
-      "position": {
-        "x": -312.04,
-        "y": 214.58
-      }
-    },
-    {
-      "id": "node-issue-236",
-      "kind": "issue",
-      "githubUrl": "https://github.com/pingdotgg/t3code/issues/236",
-      "repoSlug": "pingdotgg/t3code",
-      "number": 236,
-      "title": "Checkpoints using git in non-git repos",
-      "state": "closed",
-      "isOwnedByMe": true,
-      "position": {
-        "x": -503.71,
-        "y": 32.7
-      }
-    },
-    {
-      "id": "node-gxq6lk56",
+      "id": "node-m8lv20er",
       "kind": "pr",
-      "githubUrl": "https://github.com/pingdotgg/t3code/pull/320",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/1063",
       "repoSlug": "pingdotgg/t3code",
-      "number": 320,
-      "title": "fix: everything AICodeKing reported",
-      "state": "merged",
-      "position": {
-        "x": -184.63,
-        "y": -68.61
-      }
-    },
-    {
-      "id": "node-eeqescsl",
-      "kind": "issue",
-      "githubUrl": "https://github.com/pingdotgg/t3code/issues/244",
-      "repoSlug": "pingdotgg/t3code",
-      "number": 244,
-      "title": "Non-existent dirs can be added as projects",
-      "state": "closed",
+      "number": 1063,
+      "title": "Fix \"Implement in a new thread\" menu copy",
+      "state": "open",
       "isOwnedByMe": true,
       "position": {
-        "x": -118.33,
-        "y": 227.27
+        "x": -351.93,
+        "y": -182.45
       }
     }
   ],
   "edges": [
     {
-      "id": "edge-zlrpi727",
-      "source": "node-issue-236",
-      "target": "node-gxq6lk56",
+      "id": "edge-txws96kw",
+      "source": "node-yk0en3or",
+      "target": "node-m8lv20er",
       "kind": "solved_by"
     }
   ],
   "archived": {
     "nodes": [
+      {
+        "id": "node-issue-255",
+        "kind": "issue",
+        "githubUrl": "https://github.com/pingdotgg/t3code/issues/255",
+        "repoSlug": "pingdotgg/t3code",
+        "number": 255,
+        "title": "Plan takes over significant vertical space with no option to hide",
+        "state": "closed",
+        "isOwnedByMe": true,
+        "position": {
+          "x": -502.72,
+          "y": 200.71
+        }
+      },
+      {
+        "id": "node-issue-240",
+        "kind": "issue",
+        "githubUrl": "https://github.com/pingdotgg/t3code/issues/240",
+        "repoSlug": "pingdotgg/t3code",
+        "number": 240,
+        "title": "Settings are not discoverable on Windows",
+        "state": "closed",
+        "isOwnedByMe": true,
+        "position": {
+          "x": -312.04,
+          "y": 214.58
+        }
+      },
+      {
+        "id": "node-issue-236",
+        "kind": "issue",
+        "githubUrl": "https://github.com/pingdotgg/t3code/issues/236",
+        "repoSlug": "pingdotgg/t3code",
+        "number": 236,
+        "title": "Checkpoints using git in non-git repos",
+        "state": "closed",
+        "isOwnedByMe": true,
+        "position": {
+          "x": -503.71,
+          "y": 32.7
+        }
+      },
+      {
+        "id": "node-gxq6lk56",
+        "kind": "pr",
+        "githubUrl": "https://github.com/pingdotgg/t3code/pull/320",
+        "repoSlug": "pingdotgg/t3code",
+        "number": 320,
+        "title": "fix: everything AICodeKing reported",
+        "state": "merged",
+        "position": {
+          "x": -184.63,
+          "y": -68.61
+        }
+      },
+      {
+        "id": "node-eeqescsl",
+        "kind": "issue",
+        "githubUrl": "https://github.com/pingdotgg/t3code/issues/244",
+        "repoSlug": "pingdotgg/t3code",
+        "number": 244,
+        "title": "Non-existent dirs can be added as projects",
+        "state": "closed",
+        "isOwnedByMe": true,
+        "position": {
+          "x": -118.33,
+          "y": 227.27
+        }
+      },
       {
         "id": "node-0tf54gn4",
         "kind": "pr",
@@ -116,10 +144,16 @@
     ],
     "edges": [
       {
+        "id": "edge-zlrpi727",
+        "source": "node-issue-236",
+        "target": "node-gxq6lk56",
+        "kind": "solved_by"
+      },
+      {
         "id": "edge-1043vjcu",
         "source": "node-issue-284",
         "target": "node-0tf54gn4",
-        "kind": "relates_to"
+        "kind": "solved_by"
       }
     ]
   }

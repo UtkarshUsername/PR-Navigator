@@ -723,16 +723,27 @@ function App() {
         </div>
 
         {isEditor ? (
-          <button
-            className="fab-add"
-            type="button"
-            onClick={() => openAddModal('issue')}
-            aria-label="Add card"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-              <path d="M8 3.25v9.5M3.25 8h9.5" />
-            </svg>
-          </button>
+          <div className="board-actions-center">
+            <button
+              className="hud-button hud-button--icon"
+              type="button"
+              onClick={() => openAddModal('issue')}
+              aria-label="Add card"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+                <path d="M8 3.25v9.5M3.25 8h9.5" />
+              </svg>
+            </button>
+            <button className="hud-button" type="button" onClick={handlePublish} disabled={!isDirty}>
+              Publish
+            </button>
+            <button className="hud-button" type="button" onClick={() => fileInputRef.current?.click()}>
+              Import
+            </button>
+            <button className="hud-button" type="button" onClick={handleClearDraft} disabled={!draftAvailable}>
+              Clear draft
+            </button>
+          </div>
         ) : null}
 
         <div className="board-actions-right">
@@ -749,19 +760,6 @@ function App() {
             preference={themePreference}
             onPreferenceChange={setThemePreference}
           />
-          {isEditor ? (
-            <>
-              <button className="hud-button" type="button" onClick={handlePublish} disabled={!isDirty}>
-                Publish
-              </button>
-              <button className="hud-button" type="button" onClick={() => fileInputRef.current?.click()}>
-                Import
-              </button>
-              <button className="hud-button" type="button" onClick={handleClearDraft} disabled={!draftAvailable}>
-                Clear draft
-              </button>
-            </>
-          ) : null}
         </div>
 
         <RepoSelector selectedRepo={selectedRepo} onRepoChange={setSelectedRepo} />

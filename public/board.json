@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-15T18:15:55.786Z"
+    "updatedAt": "2026-03-16T09:08:07.133Z"
   },
   "nodes": [
     {
@@ -40,7 +40,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1108,
       "title": "[Bug]: (Meta Issue) Bug report form asks for screenshots in a shell-rendered field that cannot accept them",
-      "state": "open",
+      "state": "closed",
       "isOwnedByMe": true,
       "position": {
         "x": -648.43,
@@ -54,7 +54,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1109,
       "title": "Fix bug report issue template for screenshots",
-      "state": "open",
+      "state": "merged",
       "isOwnedByMe": true,
       "position": {
         "x": -344.96,
@@ -68,11 +68,11 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1117,
       "title": "fix: clear 'Plan Ready' on implementation in a new thread",
-      "state": "open",
+      "state": "closed",
       "isOwnedByMe": true,
       "position": {
-        "x": -336.65,
-        "y": 58.63
+        "x": -483.76,
+        "y": 200
       }
     },
     {
@@ -84,8 +84,35 @@
       "title": "Link planning and implementation threads when using Implement in new thread",
       "state": "open",
       "position": {
-        "x": -652.36,
-        "y": 52.65
+        "x": -186.99,
+        "y": 62.87
+      }
+    },
+    {
+      "id": "node-lep6gzll",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/770",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 770,
+      "title": "Plan mode support only one plan",
+      "state": "open",
+      "position": {
+        "x": -775.37,
+        "y": 76.3
+      }
+    },
+    {
+      "id": "node-vgqwp8h7",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/1133",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 1133,
+      "title": "fix: consume plans on implementation",
+      "state": "open",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -485.51,
+        "y": 75.76
       }
     }
   ],
@@ -103,10 +130,16 @@
       "kind": "solved_by"
     },
     {
-      "id": "edge-isbmvzm9",
-      "source": "node-qtbq08nf",
-      "target": "node-2jafq5w4",
+      "id": "edge-otjak9wn",
+      "source": "node-lep6gzll",
+      "target": "node-vgqwp8h7",
       "kind": "solved_by"
+    },
+    {
+      "id": "edge-5zroytlz",
+      "source": "node-vgqwp8h7",
+      "target": "node-qtbq08nf",
+      "kind": "followed_by"
     }
   ],
   "archived": {

@@ -7,7 +7,6 @@ interface AuthoredItemsSidebarProps {
   itemIdsOnBoard: ReadonlySet<string>
   loadError: string | null
   onAddItem: (item: GitHubAuthoredItem) => void
-  onClose: () => void
   onRefresh: () => void
 }
 
@@ -17,26 +16,15 @@ export function AuthoredItemsSidebar({
   itemIdsOnBoard,
   loadError,
   onAddItem,
-  onClose,
   onRefresh,
 }: AuthoredItemsSidebarProps) {
   return (
     <aside className="authored-sidebar" aria-label="Your authored GitHub items">
       <div className="authored-sidebar__header">
         <h2 className="authored-sidebar__title">Opened by you</h2>
-        <div className="authored-sidebar__header-actions">
-          <button
-            className="hud-button"
-            type="button"
-            onClick={onRefresh}
-            disabled={isLoading}
-          >
-            Refresh
-          </button>
-          <button className="modal-close" type="button" onClick={onClose} aria-label="Close sidebar">
-            x
-          </button>
-        </div>
+        <button className="hud-button" type="button" onClick={onRefresh} disabled={isLoading}>
+          Refresh
+        </button>
       </div>
 
       {loadError ? <p className="composer-sheet__error">{loadError}</p> : null}

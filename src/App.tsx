@@ -826,6 +826,21 @@ function App() {
         </div>
 
         <div className="board-actions-left">
+          {isEditor ? (
+            <button
+              className={`hud-button hud-button--icon sidebar-toggle ${isAuthoredSidebarOpen ? 'sidebar-toggle--active' : ''}`}
+              type="button"
+              onClick={() => setIsAuthoredSidebarOpen((value) => !value)}
+              aria-label={isAuthoredSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+              aria-pressed={isAuthoredSidebarOpen}
+            >
+              <span className="sidebar-toggle__bars" aria-hidden="true">
+                <span className="sidebar-toggle__bar" />
+                <span className="sidebar-toggle__bar" />
+                <span className="sidebar-toggle__bar" />
+              </span>
+            </button>
+          ) : null}
           <button
             className="hud-button hud-button--primary"
             type="button"
@@ -842,15 +857,6 @@ function App() {
               {getMoveSelectionLabel(isArchivedView, selectedNodeIds.length)}
             </button>
           ) : null}
-          {isEditor && !isAuthoredSidebarOpen ? (
-            <button
-              className="hud-button"
-              type="button"
-              onClick={() => setIsAuthoredSidebarOpen(true)}
-            >
-              Open sidebar
-            </button>
-          ) : null}
         </div>
 
         {isEditor && isAuthoredSidebarOpen ? (
@@ -860,7 +866,6 @@ function App() {
             itemIdsOnBoard={authoredItemIdsOnBoard}
             loadError={authoredItemsError}
             onAddItem={handleAddAuthoredItem}
-            onClose={() => setIsAuthoredSidebarOpen(false)}
             onRefresh={handleRefreshAuthoredItems}
           />
         ) : null}

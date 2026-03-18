@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-18T08:48:20.150Z"
+    "updatedAt": "2026-03-18T12:51:34.629Z"
   },
   "nodes": [
     {
@@ -12,7 +12,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1062,
       "title": "[Bug]: Plan action label says \"Implement in new thread\" instead of \"Implement in a new thread\"",
-      "state": "open",
+      "state": "closed",
       "isOwnedByMe": true,
       "position": {
         "x": -647.68,
@@ -26,7 +26,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1063,
       "title": "fix: fix menu copy",
-      "state": "open",
+      "state": "merged",
       "isOwnedByMe": true,
       "position": {
         "x": -351.93,
@@ -100,6 +100,34 @@
         "x": -485.51,
         "y": 75.76
       }
+    },
+    {
+      "id": "node-hmmuujt1",
+      "kind": "issue",
+      "githubUrl": "https://github.com/pingdotgg/t3code/issues/1192",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 1192,
+      "title": "[Bug]: Plan composer footer pushes the Implement action out of bounds with long selections",
+      "state": "open",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -647.27,
+        "y": 164.37
+      }
+    },
+    {
+      "id": "node-cl4vxh5a",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/1193",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 1193,
+      "title": "fix: implement button overflow",
+      "state": "open",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -333.05,
+        "y": 185.76
+      }
     }
   ],
   "edges": [
@@ -126,6 +154,12 @@
       "source": "node-vgqwp8h7",
       "target": "node-qtbq08nf",
       "kind": "followed_by"
+    },
+    {
+      "id": "edge-s7xann42",
+      "source": "node-hmmuujt1",
+      "target": "node-cl4vxh5a",
+      "kind": "solved_by"
     }
   ],
   "archived": {

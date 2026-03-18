@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-16T09:08:07.133Z"
+    "updatedAt": "2026-03-18T08:48:20.150Z"
   },
   "nodes": [
     {
@@ -59,20 +59,6 @@
       "position": {
         "x": -344.96,
         "y": -63.7
-      }
-    },
-    {
-      "id": "node-2jafq5w4",
-      "kind": "pr",
-      "githubUrl": "https://github.com/pingdotgg/t3code/pull/1117",
-      "repoSlug": "pingdotgg/t3code",
-      "number": 1117,
-      "title": "fix: clear 'Plan Ready' on implementation in a new thread",
-      "state": "closed",
-      "isOwnedByMe": true,
-      "position": {
-        "x": -483.76,
-        "y": 200
       }
     },
     {
@@ -239,6 +225,20 @@
         "position": {
           "x": -505.16,
           "y": -114.01
+        }
+      },
+      {
+        "id": "node-2jafq5w4",
+        "kind": "pr",
+        "githubUrl": "https://github.com/pingdotgg/t3code/pull/1117",
+        "repoSlug": "pingdotgg/t3code",
+        "number": 1117,
+        "title": "fix: clear 'Plan Ready' on implementation in a new thread",
+        "state": "closed",
+        "isOwnedByMe": true,
+        "position": {
+          "x": -483.76,
+          "y": 200
         }
       }
     ],

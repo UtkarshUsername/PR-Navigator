@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-18T12:51:34.629Z"
+    "updatedAt": "2026-03-18T12:54:32.155Z"
   },
   "nodes": [
     {
@@ -174,8 +174,8 @@
         "state": "closed",
         "isOwnedByMe": true,
         "position": {
-          "x": -502.72,
-          "y": 200.71
+          "x": -507.98,
+          "y": 134.09
         }
       },
       {
@@ -188,8 +188,8 @@
         "state": "closed",
         "isOwnedByMe": true,
         "position": {
-          "x": -312.04,
-          "y": 214.58
+          "x": -313.79,
+          "y": 140.94
         }
       },
       {
@@ -230,7 +230,7 @@
         "isOwnedByMe": true,
         "position": {
           "x": -118.33,
-          "y": 227.27
+          "y": 152.76
         }
       },
       {
@@ -271,8 +271,8 @@
         "state": "closed",
         "isOwnedByMe": true,
         "position": {
-          "x": -483.76,
-          "y": 200
+          "x": -312.82,
+          "y": 241.2
         }
       }
     ],

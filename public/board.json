@@ -108,7 +108,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1192,
       "title": "[Bug]: Plan composer footer pushes the Implement action out of bounds with long selections",
-      "state": "open",
+      "state": "closed",
       "isOwnedByMe": true,
       "position": {
         "x": -647.27,
@@ -122,7 +122,7 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1193,
       "title": "fix: implement button overflow",
-      "state": "open",
+      "state": "merged",
       "isOwnedByMe": true,
       "position": {
         "x": -333.05,

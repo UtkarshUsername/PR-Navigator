@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-18T19:03:52.540Z"
+    "updatedAt": "2026-03-19T04:42:35.534Z"
   },
   "nodes": [
     {
@@ -70,8 +70,8 @@
       "title": "Link planning and implementation threads when using Implement in new thread",
       "state": "open",
       "position": {
-        "x": -186.99,
-        "y": 62.87
+        "x": -353.05,
+        "y": 63.97
       }
     },
     {
@@ -81,10 +81,10 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 770,
       "title": "Plan mode support only one plan",
-      "state": "open",
+      "state": "closed",
       "position": {
-        "x": -775.37,
-        "y": 76.3
+        "x": -933.1,
+        "y": 76.85
       }
     },
     {
@@ -94,11 +94,11 @@
       "repoSlug": "pingdotgg/t3code",
       "number": 1133,
       "title": "fix: consume plans on implementation",
-      "state": "open",
+      "state": "merged",
       "isOwnedByMe": true,
       "position": {
-        "x": -485.51,
-        "y": 75.76
+        "x": -644.54,
+        "y": 76.86
       }
     },
     {
@@ -156,6 +156,20 @@
         "x": -324.91,
         "y": 286.55
       }
+    },
+    {
+      "id": "node-xfqn2mia",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/1203",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 1203,
+      "title": "fix(web): consume plans on new-thread implementation",
+      "state": "open",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -60.03,
+        "y": 71.13
+      }
     }
   ],
   "edges": [
@@ -193,6 +207,12 @@
       "id": "edge-7t07t6hn",
       "source": "node-hjdyogra",
       "target": "node-i3lxuwor",
+      "kind": "solved_by"
+    },
+    {
+      "id": "edge-e8wqz3t3",
+      "source": "node-qtbq08nf",
+      "target": "node-xfqn2mia",
       "kind": "solved_by"
     }
   ],

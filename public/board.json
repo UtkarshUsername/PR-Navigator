@@ -2,7 +2,7 @@
   "version": 1,
   "meta": {
     "title": "PR Navigator Board",
-    "updatedAt": "2026-03-19T04:42:35.534Z"
+    "updatedAt": "2026-03-20T18:36:59.890Z"
   },
   "nodes": [
     {
@@ -169,6 +169,20 @@
       "position": {
         "x": -60.03,
         "y": 71.13
+      }
+    },
+    {
+      "id": "node-18ynn7qo",
+      "kind": "pr",
+      "githubUrl": "https://github.com/pingdotgg/t3code/pull/1248",
+      "repoSlug": "pingdotgg/t3code",
+      "number": 1248,
+      "title": "fix(web): update add-project toggle label in cancel state",
+      "state": "merged",
+      "isOwnedByMe": true,
+      "position": {
+        "x": -480.12,
+        "y": 427.71
       }
     }
   ],

@@ -47,6 +47,11 @@ interface GitHubPullRequestResponse {
   merged_at: string | null
 }
 
+interface EnrichedPullRequestSearchResult
+  extends Omit<GitHubSearchResultItem, 'state'> {
+  state: BoardNodeState
+}
+
 const GITHUB_HOSTNAMES = new Set(['github.com', 'www.github.com'])
 const GITHUB_API_BASE_URL = 'https://api.github.com'
 const DEFAULT_FETCH_LIMIT = 24
@@ -284,7 +289,7 @@ function mapIssueSearchResultToAuthoredItem(
 
 function mapPullRequestSearchResultToAuthoredItem(
   repoSlug: string,
-  item: GitHubSearchResultItem & { state: BoardNodeState },
+  item: EnrichedPullRequestSearchResult,
 ): GitHubAuthoredItem {
   return {
     id: createGitHubResourceId('pr', repoSlug, item.number),

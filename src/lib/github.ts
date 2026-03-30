@@ -15,6 +15,14 @@ interface FetchAuthoredGitHubItemsOptions {
   fetchImpl?: typeof fetch
 }
 
+interface FetchGitHubResourceMetadataOptions {
+  kind: BoardNodeKind
+  repoSlug: string
+  number: number
+  token?: string
+  fetchImpl?: typeof fetch
+}
+
 interface GitHubSearchResultItem {
   number: number
   title: string
@@ -25,6 +33,18 @@ interface GitHubSearchResultItem {
 
 interface GitHubSearchResponse {
   items: GitHubSearchResultItem[]
+}
+
+interface GitHubIssueResponse {
+  title: string
+  state: 'open' | 'closed'
+}
+
+interface GitHubPullRequestResponse {
+  title: string
+  state: 'open' | 'closed'
+  draft: boolean
+  merged_at: string | null
 }
 
 const GITHUB_HOSTNAMES = new Set(['github.com', 'www.github.com'])
@@ -108,27 +128,83 @@ export async function fetchAuthoredGitHubItems({
   const headers = createGitHubApiHeaders(token)
   const issueQuery = encodeURIComponent(`repo:${trimmedRepoSlug} author:${trimmedUsername} is:issue`)
   const prQuery = encodeURIComponent(`repo:${trimmedRepoSlug} author:${trimmedUsername} is:pr`)
+  const [issueItems, pullRequestItems] = await Promise.all([
+    fetchGitHubApiJson<GitHubSearchResponse>(
+      `/search/issues?q=${issueQuery}&sort=updated&order=desc&per_page=${perKindLimit}`,
+      fetchImpl,
+      headers,
+    ),
+    fetchGitHubApiJson<GitHubSearchResponse>(
+      `/search/issues?q=${prQuery}&sort=updated&order=desc&per_page=${perKindLimit}`,
+      fetchImpl,
+      headers,
+    ),
+  ])
+
+  const enrichedPullRequests = await Promise.all(
+    pullRequestItems.items.map(async (item) => {
+      const metadata = await fetchGitHubResourceMetadata({
+        kind: 'pr',
+        repoSlug: trimmedRepoSlug,
+        number: item.number,
+        token,
+        fetchImpl,
+      })
+
+      return {
+        ...item,
+        title: metadata.title,
+        state: metadata.state,
+      }
+    }),
+  )
 
   const items = [
-    ...(
-      await fetchGitHubApiJson<GitHubSearchResponse>(
-        `/search/issues?q=${issueQuery}&sort=updated&order=desc&per_page=${perKindLimit}`,
-        fetchImpl,
-        headers,
-      )
-    ).items.map((item) => mapSearchResultToAuthoredItem(trimmedRepoSlug, 'issue', item)),
-    ...(
-      await fetchGitHubApiJson<GitHubSearchResponse>(
-        `/search/issues?q=${prQuery}&sort=updated&order=desc&per_page=${perKindLimit}`,
-        fetchImpl,
-        headers,
-      )
-    ).items.map((item) => mapSearchResultToAuthoredItem(trimmedRepoSlug, 'pr', item)),
+    ...issueItems.items.map((item) => mapIssueSearchResultToAuthoredItem(trimmedRepoSlug, item)),
+    ...enrichedPullRequests.map((item) => mapPullRequestSearchResultToAuthoredItem(trimmedRepoSlug, item)),
   ]
 
   return items
     .sort((left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt))
     .slice(0, limit)
+}
+
+export async function fetchGitHubResourceMetadata({
+  kind,
+  repoSlug,
+  number,
+  token = import.meta.env.VITE_GITHUB_TOKEN?.trim(),
+  fetchImpl = fetch,
+}: FetchGitHubResourceMetadataOptions): Promise<{
+  title: string
+  state: BoardNodeState
+}> {
+  const [owner, repo] = parseRepoSlug(repoSlug)
+  const headers = createGitHubApiHeaders(token)
+
+  if (kind === 'issue') {
+    const issue = await fetchGitHubApiJson<GitHubIssueResponse>(
+      `/repos/${owner}/${repo}/issues/${number}`,
+      fetchImpl,
+      headers,
+    )
+
+    return {
+      title: issue.title,
+      state: getIssueState(issue.state),
+    }
+  }
+
+  const pullRequest = await fetchGitHubApiJson<GitHubPullRequestResponse>(
+    `/repos/${owner}/${repo}/pulls/${number}`,
+    fetchImpl,
+    headers,
+  )
+
+  return {
+    title: pullRequest.title,
+    state: getPullRequestStateFromMetadata(pullRequest),
+  }
 }
 
 function createGitHubApiHeaders(token: string | undefined): HeadersInit {
@@ -152,6 +228,16 @@ async function fetchGitHubApiJson<T>(
   }
 
   return (await response.json()) as T
+}
+
+function parseRepoSlug(repoSlug: string): [string, string] {
+  const [owner, repo] = repoSlug.split('/').map((segment) => segment.trim())
+
+  if (!owner || !repo) {
+    throw new Error('GitHub repo slugs must look like owner/repo.')
+  }
+
+  return [owner, repo]
 }
 
 async function getGitHubApiErrorMessage(response: Response): Promise<string> {
@@ -180,25 +266,48 @@ async function getGitHubApiErrorMessage(response: Response): Promise<string> {
   return `GitHub request failed (${response.status}).`
 }
 
-function mapSearchResultToAuthoredItem(
+function mapIssueSearchResultToAuthoredItem(
   repoSlug: string,
-  kind: BoardNodeKind,
   item: GitHubSearchResultItem,
 ): GitHubAuthoredItem {
   return {
-    id: createGitHubResourceId(kind, repoSlug, item.number),
-    kind,
+    id: createGitHubResourceId('issue', repoSlug, item.number),
+    kind: 'issue',
     githubUrl: item.html_url,
     repoSlug,
     number: item.number,
     title: item.title,
-    state: kind === 'pr' ? getPullRequestState(item.state) : getIssueState(item.state),
+    state: getIssueState(item.state),
     updatedAt: item.updated_at,
   }
 }
 
-function getPullRequestState(state: GitHubSearchResultItem['state']): BoardNodeState {
-  return state === 'open' ? 'open' : 'closed'
+function mapPullRequestSearchResultToAuthoredItem(
+  repoSlug: string,
+  item: GitHubSearchResultItem & { state: BoardNodeState },
+): GitHubAuthoredItem {
+  return {
+    id: createGitHubResourceId('pr', repoSlug, item.number),
+    kind: 'pr',
+    githubUrl: item.html_url,
+    repoSlug,
+    number: item.number,
+    title: item.title,
+    state: item.state,
+    updatedAt: item.updated_at,
+  }
+}
+
+function getPullRequestStateFromMetadata(item: GitHubPullRequestResponse): BoardNodeState {
+  if (item.merged_at) {
+    return 'merged'
+  }
+
+  if (item.draft) {
+    return 'draft'
+  }
+
+  return item.state === 'open' ? 'open' : 'closed'
 }
 
 function getIssueState(state: GitHubSearchResultItem['state']): BoardNodeState {

@@ -6,7 +6,7 @@ import {
   getNodeStateBadgeTone,
 } from '../constants'
 import { getEdgeDisplayLabel } from '../lib/board'
-import type { BoardEdgeKind, BoardNodeState, FlowBoardEdge, FlowBoardNode } from '../types'
+import type { BoardEdgeKind, FlowBoardEdge, FlowBoardNode } from '../types'
 
 interface InspectorPanelProps {
   selectedNode: FlowBoardNode | undefined
@@ -15,7 +15,6 @@ interface InspectorPanelProps {
   rightLabel: string | null
   edgeReadsLeftToRight: boolean
   onNodeTitleChange: (value: string) => void
-  onNodeStateChange: (value: BoardNodeState | '') => void
   onNodeOwnedByMeChange: (value: boolean) => void
   onNodeDelete: () => void
   onEdgeKindChange: (value: BoardEdgeKind) => void
@@ -30,7 +29,6 @@ export function InspectorPanel({
   rightLabel,
   edgeReadsLeftToRight,
   onNodeTitleChange,
-  onNodeStateChange,
   onNodeOwnedByMeChange,
   onNodeDelete,
   onEdgeKindChange,
@@ -42,8 +40,6 @@ export function InspectorPanel({
   }
 
   if (selectedNode) {
-    const stateOptions: BoardNodeState[] =
-      selectedNode.data.kind === 'issue' ? ['open', 'closed'] : ['draft', 'open', 'closed', 'merged']
     const stateBadgeTone = getNodeStateBadgeTone(selectedNode.data.kind, selectedNode.data.state)
 
     return (
@@ -60,21 +56,6 @@ export function InspectorPanel({
             value={selectedNode.data.title}
             onChange={(event) => onNodeTitleChange(event.target.value)}
           />
-        </label>
-
-        <label className="field-group">
-          <span>Status</span>
-          <select
-            value={selectedNode.data.state ?? ''}
-            onChange={(event) => onNodeStateChange(event.target.value as BoardNodeState | '')}
-          >
-            <option value="">Unset</option>
-            {stateOptions.map((stateOption) => (
-              <option key={stateOption} value={stateOption}>
-                {formatNodeState(stateOption)}
-              </option>
-            ))}
-          </select>
         </label>
 
         <label className="toggle-field">

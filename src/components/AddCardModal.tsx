@@ -1,18 +1,16 @@
-import { formatNodeState, ISSUE_STATE_OPTIONS, NODE_KIND_LABELS, PR_STATE_OPTIONS } from '../constants'
-import type { BoardNodeKind, BoardNodeState } from '../types'
+import { NODE_KIND_LABELS } from '../constants'
+import type { BoardNodeKind } from '../types'
 
 interface AddCardModalProps {
   composerKind: BoardNodeKind
   composerNumber: string
   composerTitle: string
-  composerState: BoardNodeState | ''
   composerIsOwnedByMe: boolean
   composerError: string | null
   selectedRepo: string
   onKindChange: (kind: BoardNodeKind) => void
   onNumberChange: (value: string) => void
   onTitleChange: (value: string) => void
-  onStateChange: (value: BoardNodeState | '') => void
   onIsOwnedByMeChange: (value: boolean) => void
   onSubmit: () => void
   onClose: () => void
@@ -22,20 +20,16 @@ export function AddCardModal({
   composerKind,
   composerNumber,
   composerTitle,
-  composerState,
   composerIsOwnedByMe,
   composerError,
   selectedRepo,
   onKindChange,
   onNumberChange,
   onTitleChange,
-  onStateChange,
   onIsOwnedByMeChange,
   onSubmit,
   onClose,
 }: AddCardModalProps) {
-  const stateOptions = composerKind === 'issue' ? ISSUE_STATE_OPTIONS : PR_STATE_OPTIONS
-
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
@@ -83,21 +77,6 @@ export function AddCardModal({
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder="Card title"
             />
-          </label>
-
-          <label className="field-group">
-            <span>Status</span>
-            <select
-              value={composerState}
-              onChange={(e) => onStateChange(e.target.value as BoardNodeState | '')}
-            >
-              <option value="">Unset</option>
-              {stateOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {formatNodeState(opt)}
-                </option>
-              ))}
-            </select>
           </label>
 
           <label className="toggle-field">

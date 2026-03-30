@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createGitHubResourceId,
   fetchAuthoredGitHubItems,
+  fetchGitHubResourceMetadata,
   parseGitHubResourceUrl,
 } from './github'
 
@@ -86,6 +87,17 @@ describe('fetchAuthoredGitHubItems', () => {
           { status: 200 },
         ),
       )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            title: 'Ship the sidebar',
+            state: 'closed',
+            draft: false,
+            merged_at: '2026-03-01T10:30:00Z',
+          }),
+          { status: 200 },
+        ),
+      )
 
     await expect(
       fetchAuthoredGitHubItems({
@@ -102,7 +114,7 @@ describe('fetchAuthoredGitHubItems', () => {
         repoSlug: 'octocat/Hello-World',
         number: 19,
         title: 'Ship the sidebar',
-        state: 'closed',
+        state: 'merged',
         updatedAt: '2026-03-01T10:00:00Z',
       },
       {
@@ -117,7 +129,7 @@ describe('fetchAuthoredGitHubItems', () => {
       },
     ])
 
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(fetchMock).toHaveBeenCalledTimes(3)
   })
 
   it('surfaces a rate-limit specific error', async () => {
@@ -132,5 +144,37 @@ describe('fetchAuthoredGitHubItems', () => {
         fetchImpl: fetchMock,
       }),
     ).rejects.toThrow('GitHub rate limit reached. Add VITE_GITHUB_TOKEN to raise the limit.')
+  })
+})
+
+describe('fetchGitHubResourceMetadata', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('returns merged for merged pull requests', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          title: 'Ship the sidebar',
+          state: 'closed',
+          draft: false,
+          merged_at: '2026-03-01T10:30:00Z',
+        }),
+        { status: 200 },
+      ),
+    )
+
+    await expect(
+      fetchGitHubResourceMetadata({
+        kind: 'pr',
+        repoSlug: 'octocat/Hello-World',
+        number: 19,
+        fetchImpl: fetchMock,
+      }),
+    ).resolves.toEqual({
+      title: 'Ship the sidebar',
+      state: 'merged',
+    })
   })
 })

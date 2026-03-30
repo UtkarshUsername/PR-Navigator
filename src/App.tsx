@@ -43,7 +43,11 @@ import {
   flowToBoardNodes,
   moveSelectedFlowNodesToBoard,
 } from './lib/flow'
-import { createGitHubResourceId, fetchAuthoredGitHubItems } from './lib/github'
+import {
+  createGitHubResourceId,
+  fetchAuthoredGitHubItems,
+  fetchGitHubResourceMetadata,
+} from './lib/github'
 import { getBoardPath, getBoardView, getViewerRedirectPath, isViewerPath } from './lib/routing'
 import {
   applyThemePreferenceToDocument,
@@ -98,7 +102,6 @@ function App() {
   const [composerKind, setComposerKind] = useState<BoardNodeKind | null>(null)
   const [composerNumber, setComposerNumber] = useState('')
   const [composerTitle, setComposerTitle] = useState('')
-  const [composerState, setComposerState] = useState<BoardNodeState | ''>('')
   const [composerIsOwnedByMe, setComposerIsOwnedByMe] = useState(false)
   const [composerError, setComposerError] = useState<string | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -117,6 +120,9 @@ function App() {
     loadThemePreference(THEME_STORAGE_KEY),
   )
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const boardNodesForStatusSyncRef = useRef<
+    Array<{ id: string; kind: BoardNodeKind; repoSlug: string; number: number }>
+  >([])
   const viewerRedirectPath = getViewerRedirectPath(pathname, APP_MODE)
   const boardView = getBoardView(pathname, APP_MODE)
   const isArchivedView = boardView === 'archived'
@@ -191,6 +197,14 @@ function App() {
           createGitHubResourceId(node.data.kind, node.data.repoSlug, node.data.number),
         ),
       ),
+    [archivedNodes, currentNodes],
+  )
+  const boardNodeStatusSyncKey = useMemo(
+    () =>
+      [...currentNodes, ...archivedNodes]
+        .map((node) => createGitHubResourceId(node.data.kind, node.data.repoSlug, node.data.number))
+        .sort()
+        .join('|'),
     [archivedNodes, currentNodes],
   )
 
@@ -269,6 +283,65 @@ function App() {
       cancelled = true
     }
   }, [authoredItemsRefreshKey, isEditor, selectedRepo])
+
+  useEffect(() => {
+    boardNodesForStatusSyncRef.current = [...currentNodes, ...archivedNodes].map((node) => ({
+      id: node.id,
+      kind: node.data.kind,
+      repoSlug: node.data.repoSlug,
+      number: node.data.number,
+    }))
+  }, [archivedNodes, currentNodes])
+
+  useEffect(() => {
+    if (!hasHydrated || viewerRedirectPath || boardNodeStatusSyncKey.length === 0) {
+      return
+    }
+
+    let cancelled = false
+    const boardNodes = boardNodesForStatusSyncRef.current
+
+    void Promise.all(
+      boardNodes.map(async (node) => {
+        try {
+          const metadata = await fetchGitHubResourceMetadata({
+            kind: node.kind,
+            repoSlug: node.repoSlug,
+            number: node.number,
+          })
+
+          return { id: node.id, state: metadata.state }
+        } catch {
+          return null
+        }
+      }),
+    ).then((results) => {
+      if (cancelled) {
+        return
+      }
+
+      const nextStateById = new Map(
+        results
+          .filter((result): result is { id: string; state: BoardNodeState } => result !== null)
+          .map((result) => [result.id, result.state]),
+      )
+
+      if (nextStateById.size === 0) {
+        return
+      }
+
+      setCurrentNodes((existingNodes) => syncNodeStates(existingNodes, nextStateById))
+      setArchivedNodes((existingNodes) => syncNodeStates(existingNodes, nextStateById))
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    boardNodeStatusSyncKey,
+    hasHydrated,
+    viewerRedirectPath,
+  ])
 
   useEffect(() => {
     function handlePopState() {
@@ -452,7 +525,6 @@ function App() {
       setComposerKind(null)
       setComposerNumber('')
       setComposerTitle('')
-      setComposerState('')
       setComposerIsOwnedByMe(false)
       setComposerError(null)
       setLoadError(null)
@@ -511,7 +583,7 @@ function App() {
     repoSlug: string
     number: number
     title: string
-    state?: BoardNodeState
+    state: BoardNodeState
     isOwnedByMe?: boolean
   }) {
     const resourceId = createGitHubResourceId(input.kind, input.repoSlug, input.number)
@@ -545,7 +617,7 @@ function App() {
     return true
   }
 
-  function handleCreateNode() {
+  async function handleCreateNode() {
     if (!composerKind) {
       return
     }
@@ -557,6 +629,18 @@ function App() {
     }
 
     const resource = composerKind === 'issue' ? 'issues' : 'pull'
+    let metadata: Awaited<ReturnType<typeof fetchGitHubResourceMetadata>>
+
+    try {
+      metadata = await fetchGitHubResourceMetadata({
+        kind: composerKind,
+        repoSlug: selectedRepo,
+        number: num,
+      })
+    } catch (error) {
+      setComposerError(error instanceof Error ? error.message : 'Unable to load the GitHub status.')
+      return
+    }
 
     if (
       !addNodeToActiveBoard({
@@ -564,8 +648,8 @@ function App() {
         githubUrl: `https://github.com/${selectedRepo}/${resource}/${num}`,
         repoSlug: selectedRepo,
         number: num,
-        title: composerTitle,
-        state: composerState || undefined,
+        title: composerTitle.trim() || metadata.title,
+        state: metadata.state,
         isOwnedByMe: composerIsOwnedByMe || undefined,
       })
     ) {
@@ -738,7 +822,6 @@ function App() {
 
   function openAddModal(kind: BoardNodeKind = 'issue') {
     setComposerKind(kind)
-    setComposerState(kind === 'issue' ? 'open' : 'draft')
     setComposerIsOwnedByMe(false)
     setComposerNumber('')
     setComposerTitle('')
@@ -751,7 +834,6 @@ function App() {
     setComposerKind(null)
     setComposerNumber('')
     setComposerTitle('')
-    setComposerState('')
     setComposerIsOwnedByMe(false)
     setComposerError(null)
   }
@@ -926,15 +1008,6 @@ function App() {
                 },
               }))
             }
-            onNodeStateChange={(value) =>
-              updateSelectedNode((node) => ({
-                ...node,
-                data: {
-                  ...node.data,
-                  state: value || undefined,
-                },
-              }))
-            }
             onNodeOwnedByMeChange={(value) =>
               updateSelectedNode((node) => ({
                 ...node,
@@ -980,13 +1053,11 @@ function App() {
             composerKind={composerKind}
             composerNumber={composerNumber}
             composerTitle={composerTitle}
-            composerState={composerState}
             composerIsOwnedByMe={composerIsOwnedByMe}
             composerError={composerError}
             selectedRepo={selectedRepo}
             onKindChange={(kind) => {
               setComposerKind(kind)
-              setComposerState(kind === 'issue' ? 'open' : 'draft')
             }}
             onNumberChange={(value) => {
               setComposerNumber(value)
@@ -995,7 +1066,6 @@ function App() {
               }
             }}
             onTitleChange={setComposerTitle}
-            onStateChange={setComposerState}
             onIsOwnedByMeChange={setComposerIsOwnedByMe}
             onSubmit={handleCreateNode}
             onClose={closeAddModal}
@@ -1054,6 +1124,33 @@ function areStringArraysEqual(left: string[], right: string[]) {
   }
 
   return left.every((value, index) => value === right[index])
+}
+
+function syncNodeStates(
+  nodes: FlowBoardNode[],
+  nextStateById: Map<string, BoardNodeState>,
+): FlowBoardNode[] {
+  let hasChanges = false
+
+  const nextNodes = nodes.map((node) => {
+    const nextState = nextStateById.get(node.id)
+
+    if (!nextState || nextState === node.data.state) {
+      return node
+    }
+
+    hasChanges = true
+
+    return {
+      ...node,
+      data: {
+        ...node.data,
+        state: nextState,
+      },
+    }
+  })
+
+  return hasChanges ? nextNodes : nodes
 }
 
 function getSuggestedPosition(

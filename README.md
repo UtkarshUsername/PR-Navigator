@@ -2,6 +2,8 @@
 
 A static React + TypeScript board for arranging GitHub issues and pull requests on a visual canvas.
 
+<img width="1896" height="1056" alt="image" src="https://github.com/user-attachments/assets/908db710-229c-43f5-b673-bc1f672c59f7" />
+
 ## Modes
 - `npm run dev` starts the app in `editor` mode from `.env.development`
 - `npm run build` builds the app in `viewer` mode from `.env.production`

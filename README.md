@@ -1,3 +1,5 @@
+This is not being updates now.
+
 # PR Navigator
 
 A static React + TypeScript board for arranging GitHub issues and pull requests on a visual canvas.

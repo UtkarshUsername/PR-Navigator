@@ -1,4 +1,4 @@
-This is not being updates now.
+This is not being updated now.
 
 # PR Navigator
 
